@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hemi Bros NFT Gallery</title>
+    
+    <!-- Google Fonts: VT323 -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              'sans': ['ui-sans-serif', 'system-ui', 'sans-serif'],
+              'pixel': ['VT323', 'monospace'],
+            },
+            colors: {
+              'snes-purple': '#5850a8',
+              'snes-light-gray': '#d1d1d1', // Main BG
+              'snes-panel': '#f0f0f0',      // Card/Modal BG
+              'snes-dark-gray': '#848484',   // Borders, secondary text
+              'snes-text-dark': '#2a2a2a',   // Main text
+              'primary': '#5850a8',
+              'secondary': '#848484',
+              'grail': '#e60012',
+              'legendary': '#ff9900',
+              'epic': '#b344f3',
+              'rare': '#00a800',
+              'uncommon': '#a0522d',
+              'common': '#6b7280',
+            },
+            transitionProperty: {
+              'width': 'width',
+            }
+          },
+        },
+      }
+    </script>
+    <style type="text/css">
+      body {
+        font-family: 'ui-sans-serif', 'system-ui', sans-serif;
+        background-color: #d1d1d1; /* snes-light-gray */
+        background-image: linear-gradient(45deg, #c6c6c6 25%, transparent 25%), linear-gradient(-45deg, #c6c6c6 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #c6c6c6 75%), linear-gradient(-45deg, transparent 75%, #c6c6c6 75%);
+        background-size: 8px 8px;
+      }
+      .font-pixel {
+        font-family: "VT323", monospace;
+      }
+       .retro-button {
+        background-color: #848484;
+        color: #f0f0f0;
+        border: 2px solid #2a2a2a;
+        transition: filter 0.1s ease-out;
+       }
+       .retro-button:hover {
+        filter: brightness(1.1);
+       }
+       .retro-button:active {
+        filter: brightness(0.9);
+       }
+       .retro-button-red {
+        background-color: #e60012;
+        color: white;
+       }
+       .retro-button-red:hover {
+        background-color: #ff1a2d;
+       }
+       /* Ensure selects are visible on new backgrounds */
+      select {
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23848484' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+        background-position: right 0.5rem center;
+        background-repeat: no-repeat;
+        background-size: 1.5em 1.5em;
+        padding-right: 2.5rem;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      /* Rarity Animations */
+      @keyframes rare-glow {
+          0%, 100% { box-shadow: 0 0 5px #00a800, 0 0 10px #00a800; }
+          50% { box-shadow: 0 0 15px #33c333, 0 0 20px #33c333; }
+      }
+      .animate-rare-glow { animation: rare-glow 2s ease-in-out infinite; }
+
+      @keyframes epic-glow {
+        0%, 100% { box-shadow: 0 0 8px #b344f3, 0 0 12px #b344f3, inset 0 0 5px #d27cff; }
+        50% { box-shadow: 0 0 16px #c364ff, 0 0 24px #c364ff, inset 0 0 10px #e1a0ff; }
+      }
+      .animate-epic-glow { animation: epic-glow 1.5s ease-in-out infinite; }
+
+      @keyframes legendary-glow {
+        0% { box-shadow: 0 0 10px #ff9900, 0 0 15px #ff9900, 0 0 20px #ff9900; transform: scale(1); }
+        50% { box-shadow: 0 0 20px #ffc966, 0 0 30px #ffc966, 0 0 40px #ffc966; transform: scale(1.05); }
+        100% { box-shadow: 0 0 10px #ff9900, 0 0 15px #ff9900, 0 0 20px #ff9900; transform: scale(1); }
+      }
+      .animate-legendary-glow { animation: legendary-glow 1.8s ease-in-out infinite; }
+
+      @keyframes grail-glow {
+        0%, 100% { box-shadow: 0 0 15px #e60012, 0 0 25px #ff1a2d, 0 0 35px #ff1a2d; text-shadow: 0 0 5px #fff; }
+        50% { box-shadow: 0 0 30px #ff3344, 0 0 50px #ff4d5d, 0 0 70px #ff4d5d; text-shadow: 0 0 10px #fff; }
+      }
+      .animate-grail-glow { animation: grail-glow 1s linear infinite; }
+
+    </style>
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react-dom/client": "https://aistudiocdn.com/react-dom@^19.2.0/client",
+    "react-router-dom": "https://aistudiocdn.com/react-router-dom@^7.9.4",
+    "papaparse": "https://aistudiocdn.com/papaparse@^5.5.3"
+  }
+}
+</script>
+</head>
+  <body class="antiasaed text-snes-text-dark">
+    <div id="root"></div>
+
+    <script type="module">
+// =================================================================
+// START OF PRE-COMPILED REACT APPLICATION (from index.tsx)
+// =================================================================
+import React, { useState, useEffect, useMemo, useCallback, useRef, forwardRef, memo } from 'react';
+import ReactDOM from 'react-dom/client';
+import { HashRouter, Routes, Route, NavLink } from 'react-router-dom';
+import Papa from 'papaparse';
+
+// --- ICONS ---
+const BroTypeIcon = ({
+  className = 'h-4 w-4'
+}) => /*#__PURE__*/React.createElement("svg", {
+  xmlns: "http://www.w3.org/2000/svg",
+  className: className,
+  viewBox: "0 0 20 20",
+  fill: "currentColor"
+}, /*#__PURE__*/React.createElement("path", {
+  fillRule: "evenodd",
+  d: "M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z",
+  clipRule: "evenodd"
+}));
+const ClothesIcon = ({
+  className = 'h-4 w-4'
+}) => /*#__PURE__*/React.createElement("svg", {
+  xmlns: "http://www.w3.org/2000/svg",
+  className: className,
+  viewBox: "0 0 20 20",
+  fill: "currentColor"
+}, /*#__PURE__*/React.createElement("path", {
+  d: "M5.5 3.5A2.5 2.5 0 018 1h4a2.5 2.5 0 012.5 2.5V5h-9V3.5zM3 6h14v10a2 2 0 01-2 2H5a2 2 0 01-2-2V6z"
+}));
+const EyewearIcon = ({
+  className = 'h-4 w-4'
+}) => /*#__PURE__*/React.createElement("svg", {
+  xmlns: "http://www.w3.org/2000/svg",
+  className: className,
+  fill: "none",
+  viewBox: "0 0 24 24",
+  stroke: "currentColor",
+  strokeWidth: 2
+}, /*#__PURE__*/React.createElement("path", {
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  d: "M4.68 10.98a5 5 0 019.64 0M19.32 10.98a5 5 0 01-9.64 0M4 11h16"
+}));
+const EyesIcon = ({
+  className = 'h-4 w-4'
+}) => /*#__PURE__*/React.createElement("svg", {
+  xmlns: "http://www.w3.org/2000/svg",
+  className: className,
+  viewBox: "0 0 20 20",
+  fill: "currentColor"
+}, /*#__PURE__*/React.createElement("path", {
+  d: "M10 12a2 2 0 100-4 2 2 0 000 4z"
+}), /*#__PURE__*/React.createElement("path", {
+  fillRule: "evenodd",
+  d: "M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.03 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z",
+  clipRule: "evenodd"
+}));
+const HeadwearIcon = ({
+  className = 'h-4 w-4'
+}) => /*#__PURE__*/React.createElement("svg", {
+  xmlns: "http://www.w3.org/2000/svg",
+  className: className,
+  viewBox: "0 0 20 20",
+  fill: "currentColor"
+}, /*#__PURE__*/React.createElement("path", {
+  d: "M10 2a5 5 0 00-5 5v1h10V7a5 5 0 00-5-5zM3 9v5a2 2 0 002 2h10a2 2 0 002-2V9a1 1 0 10-2 0v5H5V9a1 1 0 10-2 0z"
+}));
+const MouthItemsIcon = ({
+  className = 'h-4 w-4'
+}) => /*#__PURE__*/React.createElement("svg", {
+  xmlns: "http://www.w3.org/2000/svg",
+  className: className,
+  fill: "none",
+  viewBox: "0 0 24 24",
+  stroke: "currentColor",
+  strokeWidth: 2
+}, /*#__PURE__*/React.createElement("path", {
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  d: "M6 15c1.5-2 4.5-3 6-3s4.5 1 6 3"
+}));
+const CloseIcon = ({
+  className = "h-6 w-6"
+}) => /*#__PURE__*/React.createElement("svg", {
+  xmlns: "http://www.w3.org/2000/svg",
+  className: className,
+  fill: "none",
+  viewBox: "0 0 24 24",
+  stroke: "currentColor"
+}, /*#__PURE__*/React.createElement("path", {
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  strokeWidth: 2,
+  d: "M6 18L18 6M6 6l12 12"
+}));
+const SlidersIcon = () => /*#__PURE__*/React.createElement("svg", {
+  xmlns: "http://www.w3.org/2000/svg",
+  className: "h-8 w-8",
+  fill: "none",
+  viewBox: "0 0 24 24",
+  stroke: "currentColor",
+  strokeWidth: 2
+}, /*#__PURE__*/React.createElement("path", {
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  d: "M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75"
+}));
+const IdIcon = ({
+  className = 'h-4 w-4'
+}) => /*#__PURE__*/React.createElement("svg", {
+  xmlns: "http://www.w3.org/2000/svg",
+  className: className,
+  fill: "none",
+  viewBox: "0 0 24 24",
+  stroke: "currentColor",
+  strokeWidth: 2
+}, /*#__PURE__*/React.createElement("path", {
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  d: "M7 20l4-16m2 16l4-16M6 9h14M4 15h14"
+}));
+const InfoIcon = ({
+  className = 'h-5 w-5'
+}) => /*#__PURE__*/React.createElement("svg", {
+  xmlns: "http://www.w3.org/2000/svg",
+  className: className,
+  fill: "none",
+  viewBox: "0 0 24 24",
+  stroke: "currentColor",
+  strokeWidth: 2
+}, /*#__PURE__*/React.createElement("path", {
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
+  d: "M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+}));
+const StarIcon = ({
+  className = "h-6 w-6"
+}) => /*#__PURE__*/React.createElement("svg", {
+  xmlns: "http://www.w3.org/2000/svg",
+  viewBox: "0 0 24 24",
+  fill: "currentColor",
+  className: className
+}, /*#__PURE__*/React.createElement("path", {
+  fillRule: "evenodd",
+  d: "M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.007z",
+  clipRule: "evenodd"
+}));
+
+// --- CONSTANTS ---
+const RARITY_LEVELS = ['Grail', 'Legendary', 'Epic', 'Rare', 'Uncommon', 'Common'];
+const TRAIT_MAP = {
+  'Bro Type': 'Bro Type',
+  'Headwear': 'Headwear',
+  'Clothes': 'Clothes',
+  'Eyes': 'Eyes',
+  'Eyewear': 'Eyewear',
+  'Mouth Items': 'Mouth Items'
+};
+const TRAIT_CATEGORIES = [...Object.keys(TRAIT_MAP), 'Background'];
+const TRAIT_ICONS = {
+  'Bro Type': BroTypeIcon,
+  'Headwear': HeadwearIcon,
+  'Clothes': ClothesIcon,
+  'Eyes': EyesIcon,
+  'Eyewear': EyewearIcon,
+  'Mouth Items': MouthItemsIcon
+};
+const RARITY_LEGEND_DATA = [{
+  tier: 'Grail',
+  stars: 6,
+  supplyRange: '1',
+  colorClass: 'text-grail'
+}, {
+  tier: 'Legendary',
+  stars: 5,
+  supplyRange: '2-10',
+  colorClass: 'text-legendary'
+}, {
+  tier: 'Epic',
+  stars: 4,
+  supplyRange: '11-25',
+  colorClass: 'text-epic'
+}, {
+  tier: 'Rare',
+  stars: 3,
+  supplyRange: '26-50',
+  colorClass: 'text-rare'
+}, {
+  tier: 'Uncommon',
+  stars: 2,
+  supplyRange: '51-100',
+  colorClass: 'text-uncommon'
+}, {
+  tier: 'Common',
+  stars: 1,
+  supplyRange: '101+',
+  colorClass: 'text-common'
+}];
+
+// --- UTILS ---
+const createTraitNameKey = name => {
+  if (!name || name === 'None') return 'none';
+  return name.split(' (')[0].trim().toLowerCase();
+};
+const createTraitKey = (type, name) => {
+  const normalizedName = createTraitNameKey(name);
+  const normalizedType = type.trim().toLowerCase();
+  return `${normalizedType}:${normalizedName}`;
+};
+function getRarityInfoFromSupply(supply) {
+  if (isNaN(supply)) return {
+    tier: 'Common',
+    className: 'text-common'
+  };
+  if (supply === 1) return {
+    tier: 'Grail',
+    className: 'text-grail'
+  };
+  if (supply <= 10) return {
+    tier: 'Legendary',
+    className: 'text-legendary'
+  };
+  if (supply <= 25) return {
+    tier: 'Epic',
+    className: 'text-epic'
+  };
+  if (supply <= 50) return {
+    tier: 'Rare',
+    className: 'text-rare'
+  };
+  if (supply <= 100) return {
+    tier: 'Uncommon',
+    className: 'text-uncommon'
+  };
+  return {
+    tier: 'Common',
+    className: 'text-common'
+  };
+}
+;
+function getRarityInfoFromTrait(traitValue) {
+  if (!traitValue) return {
+    tier: 'N/A',
+    className: 'text-gray-400'
+  };
+  const match = traitValue.toString().match(/\((\d+)\)/);
+  if (!match) return {
+    tier: 'Common',
+    className: 'text-common'
+  };
+  const supply = parseInt(match[1], 10);
+  return getRarityInfoFromSupply(supply);
+}
+;
+function getBestRarity(nft) {
+  let lowestSupply = Infinity;
+  let sourceTrait = 'N/A';
+  TRAIT_CATEGORIES.forEach(traitKey => {
+    const traitValue = nft[traitKey];
+    const match = traitValue?.toString().match(/\((\d+)\)/);
+    if (match) {
+      const currentSupply = parseInt(match[1], 10);
+      if (currentSupply < lowestSupply) {
+        lowestSupply = currentSupply;
+        sourceTrait = TRAIT_MAP[traitKey] || traitKey;
+      }
+    }
+  });
+  if (lowestSupply === Infinity) {
+    return {
+      tier: 'Common',
+      className: 'text-common',
+      sourceTrait: 'N/A'
+    };
+  }
+  const rarityInfo = getRarityInfoFromSupply(lowestSupply);
+  return {
+    ...rarityInfo,
+    sourceTrait
+  };
+}
+;
+function getBestItemRarity(nft) {
+  let lowestSupply = Infinity;
+  let sourceTrait = 'N/A';
+  const itemTraits = TRAIT_CATEGORIES.filter(t => t !== 'Bro Type');
+  itemTraits.forEach(traitKey => {
+    const traitValue = nft[traitKey];
+    const match = traitValue?.toString().match(/\((\d+)\)/);
+    if (match) {
+      const currentSupply = parseInt(match[1], 10);
+      if (currentSupply < lowestSupply) {
+        lowestSupply = currentSupply;
+        sourceTrait = TRAIT_MAP[traitKey] || traitKey;
+      }
+    }
+  });
+  if (lowestSupply === Infinity) {
+    return {
+      tier: 'N/A',
+      className: 'text-gray-400',
+      sourceTrait: 'N/A'
+    };
+  }
+  const rarityInfo = getRarityInfoFromSupply(lowestSupply);
+  return {
+    ...rarityInfo,
+    sourceTrait
+  };
+}
+;
+function getRarityClass(traitValue) {
+  return getRarityInfoFromTrait(traitValue).className;
+}
+
+// --- HOOKS ---
+const useNfts = () => {
+  const [nfts, setNfts] = useState([]);
+  const [traitDetails, setTraitDetails] = useState({});
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [filters, setFilters] = useState({
+    id: '',
+    owner: '',
+    rarity: '',
+    traits: {}
+  });
+  const [showIpConcern, setShowIpConcern] = useState(false);
+  useEffect(() => {
+    const fetchAllData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const [nftResponse, traitResponse] = await Promise.all([fetch('https://raw.githubusercontent.com/hemibroscommunity-del/Hemi-Bros-catalogue/main/justCSVdata.txt'), fetch('https://raw.githubusercontent.com/hemibroscommunity-del/Hemi-Bros-catalogue/main/All%20Hemi%20Bros%20NFT%20Rarity%20-%20convertcsv1%20-%20SupplyCount%20-%20descriptions%20and%20flags.txt')]);
+        if (!nftResponse.ok) throw new Error(`Failed to fetch NFT data: ${nftResponse.statusText}`);
+        if (!traitResponse.ok) throw new Error(`Failed to fetch Trait data: ${traitResponse.statusText}`);
+        const nftCsvText = await nftResponse.text();
+        const traitCsvText = await traitResponse.text();
+        const nameDetailsPromise = new Promise((resolve, reject) => {
+          Papa.parse(traitCsvText, {
+            header: true,
+            skipEmptyLines: true,
+            complete: results => {
+              if (results.errors.length) return reject(new Error("Failed to parse Trait details CSV."));
+              const map = results.data.reduce((acc, detail) => {
+                const traitName = detail['Unique Item List'];
+                if (traitName) {
+                  const key = traitName.trim().toLowerCase();
+                  acc[key] = detail;
+                }
+                return acc;
+              }, {});
+              resolve(map);
+            },
+            error: err => reject(err)
+          });
+        });
+        const nftsPromise = new Promise((resolve, reject) => {
+          Papa.parse(nftCsvText, {
+            header: true,
+            dynamicTyping: true,
+            skipEmptyLines: true,
+            complete: results => {
+              if (results.errors.length) return reject(new Error("Failed to parse NFT data CSV."));
+              resolve(results.data.filter(nft => nft.ID != null));
+            },
+            error: err => reject(err)
+          });
+        });
+        const [nameDetailsMap, parsedNfts] = await Promise.all([nameDetailsPromise, nftsPromise]);
+        const nameToTypeMap = {};
+        parsedNfts.forEach(nft => {
+          TRAIT_CATEGORIES.forEach(category => {
+            const traitValue = nft[category];
+            const nameKey = createTraitNameKey(traitValue);
+            if (nameKey !== 'none' && !nameToTypeMap[nameKey]) {
+              nameToTypeMap[nameKey] = category;
+            }
+          });
+        });
+        const finalTraitDetailsMap = {};
+        for (const nameKey in nameDetailsMap) {
+          const type = nameToTypeMap[nameKey];
+          if (type) {
+            const traitKey = `${type.trim().toLowerCase()}:${nameKey}`;
+            finalTraitDetailsMap[traitKey] = {
+              ...nameDetailsMap[nameKey],
+              'Trait Type': type
+            };
+          }
+        }
+        const ipConcernTraitKeys = new Set(Object.values(finalTraitDetailsMap).filter(d => d['IP Concern']?.trim() === 'Yes').map(d => createTraitKey(d['Trait Type'], d['Unique Item List'])));
+        const nftsWithFlags = parsedNfts.map(nft => {
+          const hasIpConcern = TRAIT_CATEGORIES.some(traitKey => {
+            const traitValue = nft[traitKey];
+            const key = createTraitKey(traitKey, traitValue);
+            return ipConcernTraitKeys.has(key);
+          });
+          return {
+            ...nft,
+            isIpConcern: hasIpConcern
+          };
+        });
+        setTraitDetails(finalTraitDetailsMap);
+        setNfts(nftsWithFlags);
+      } catch (e) {
+        console.error("Fetching data failed:", e);
+        setError(e.message || "An unknown error occurred while fetching data.");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAllData();
+  }, []);
+  const filteredNfts = useMemo(() => {
+    return nfts.filter(nft => {
+      if (!showIpConcern && nft.isIpConcern) return false;
+      const idMatch = filters.id ? nft.ID.toString() === filters.id : true;
+      const rarityMatch = filters.rarity ? getBestRarity(nft).tier === filters.rarity : true;
+      const traitsMatch = Object.entries(filters.traits).every(([trait, value]) => {
+        const nftTraitValue = nft[trait];
+        return nftTraitValue === value;
+      });
+      return idMatch && rarityMatch && traitsMatch;
+    });
+  }, [nfts, filters, showIpConcern]);
+  const traitOptions = useMemo(() => {
+    const options = {};
+    Object.keys(TRAIT_MAP).forEach(traitKey => {
+      const traitValues = new Set();
+      nfts.forEach(nft => {
+        const value = nft[traitKey];
+        if (value) traitValues.add(value);
+      });
+      options[TRAIT_MAP[traitKey]] = Array.from(traitValues).sort();
+    });
+    return options;
+  }, [nfts]);
+  return {
+    nfts,
+    filteredNfts,
+    filters,
+    setFilters,
+    traitOptions,
+    loading,
+    error,
+    showIpConcern,
+    setShowIpConcern,
+    traitDetails
+  };
+};
+
+// --- COMPONENTS ---
+const RarityStarsDisplay = ({
+  tier,
+  className = 'h-5 w-5'
+}) => {
+  let stars = 0;
+  let colorClass = 'text-gray-400';
+  switch (tier) {
+    case 'Grail':
+      stars = 6;
+      colorClass = 'text-grail';
+      break;
+    case 'Legendary':
+      stars = 5;
+      colorClass = 'text-legendary';
+      break;
+    case 'Epic':
+      stars = 4;
+      colorClass = 'text-epic';
+      break;
+    case 'Rare':
+      stars = 3;
+      colorClass = 'text-rare';
+      break;
+    case 'Uncommon':
+      stars = 2;
+      colorClass = 'text-uncommon';
+      break;
+    case 'Common':
+      stars = 1;
+      colorClass = 'text-common';
+      break;
+  }
+  if (stars === 0) return null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center"
+  }, Array.from({
+    length: stars
+  }).map((_, i) => /*#__PURE__*/React.createElement(StarIcon, {
+    key: i,
+    className: `${className} ${colorClass}`
+  })));
+};
+const RarityBadge = ({
+  tier
+}) => {
+  let stars = 0;
+  let containerClasses = 'relative flex items-center gap-1 text-xs font-bold text-white px-2 py-0.5 rounded-full whitespace-nowrap transition-all duration-300 flex-shrink-0';
+  switch (tier) {
+    case 'Grail':
+      stars = 6;
+      containerClasses += ' bg-grail animate-flame-red';
+      break;
+    case 'Legendary':
+      stars = 5;
+      containerClasses += ' bg-legendary animate-flame-orange';
+      break;
+    case 'Epic':
+      stars = 4;
+      containerClasses += ' bg-epic animate-pulse-bg';
+      break;
+    case 'Rare':
+      stars = 3;
+      containerClasses += ' bg-rare border-2 border-green-300';
+      break;
+    case 'Uncommon':
+      stars = 2;
+      containerClasses += ' bg-uncommon';
+      break;
+    case 'Common':
+      stars = 1;
+      containerClasses += ' bg-common font-semibold';
+      break;
+    default:
+      stars = 0;
+      containerClasses += ' bg-gray-400 font-semibold';
+      break;
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    className: containerClasses
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "relative z-10 flex items-center gap-1"
+  }, Array.from({
+    length: stars
+  }).map((_, i) => /*#__PURE__*/React.createElement(StarIcon, {
+    key: i,
+    className: "h-3 w-3"
+  })), /*#__PURE__*/React.createElement("span", null, tier)));
+};
+const NftCard = /*#__PURE__*/forwardRef(({
+  nft,
+  onCardClick,
+  isSidebarOpen
+}, ref) => {
+  const bestRarity = getBestRarity(nft);
+  const broTypeRarity = getRarityInfoFromTrait(nft['Bro Type']);
+  const glowClasses = {
+    'Grail': 'animate-grail-glow',
+    'Legendary': 'animate-legendary-glow',
+    'Epic': 'animate-epic-glow',
+    'Rare': 'animate-rare-glow'
+  };
+  let cardClasses = `bg-white rounded-lg shadow-md overflow-hidden cursor-pointer transform hover:scale-105 hover:shadow-xl transition-all duration-200 group flex flex-col border ${glowClasses[broTypeRarity.tier] || ''}`;
+  return /*#__PURE__*/React.createElement("div", {
+    ref: ref,
+    className: cardClasses,
+    onClick: () => onCardClick(nft)
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "aspect-w-1 aspect-h-1 w-full"
+  }, /*#__PURE__*/React.createElement("img", {
+    src: nft.Image || `https://picsum.photos/seed/${nft.ID}/300`,
+    alt: `Hemi Bro #${nft.ID}`,
+    className: "object-cover w-full h-full",
+    loading: "lazy"
+  })), !isSidebarOpen && /*#__PURE__*/React.createElement("div", {
+    className: "p-2 flex-grow flex flex-col justify-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center gap-2"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-bold text-gray-800 group-hover:text-primary transition-colors truncate min-w-0"
+  }, "#", nft.ID), /*#__PURE__*/React.createElement(RarityBadge, {
+    tier: bestRarity.tier
+  }))));
+});
+NftCard.displayName = 'NftCard';
+const MemoizedNftCard = /*#__PURE__*/memo(NftCard);
+const FilterTag = ({
+  label,
+  onRemove
+}) => /*#__PURE__*/React.createElement("span", {
+  className: "flex items-center bg-primary text-white text-sm font-medium pl-3 pr-2 py-1 rounded-full"
+}, label, /*#__PURE__*/React.createElement("button", {
+  onClick: onRemove,
+  className: "ml-2 p-0.5 rounded-full hover:bg-white/20 transition-colors",
+  "aria-label": `Remove filter: ${label}`
+}, /*#__PURE__*/React.createElement(CloseIcon, {
+  className: "h-3 w-3"
+})));
+const ActiveFilters = ({
+  filters,
+  setFilters
+}) => {
+  const activeFilterList = [];
+  const handleRemoveId = () => setFilters(prev => ({
+    ...prev,
+    id: ''
+  }));
+  const handleRemoveRarity = () => setFilters(prev => ({
+    ...prev,
+    rarity: ''
+  }));
+  const handleRemoveTrait = traitName => setFilters(prev => {
+    const newTraits = {
+      ...prev.traits
+    };
+    delete newTraits[traitName];
+    return {
+      ...prev,
+      traits: newTraits
+    };
+  });
+  const handleClearAll = () => setFilters({
+    id: '',
+    owner: '',
+    rarity: '',
+    traits: {}
+  });
+  if (filters.id) activeFilterList.push( /*#__PURE__*/React.createElement(FilterTag, {
+    key: "id",
+    label: `ID: ${filters.id}`,
+    onRemove: handleRemoveId
+  }));
+  if (filters.rarity) activeFilterList.push( /*#__PURE__*/React.createElement(FilterTag, {
+    key: "rarity",
+    label: `Rarity: ${filters.rarity}`,
+    onRemove: handleRemoveRarity
+  }));
+  Object.entries(filters.traits).forEach(([traitName, value]) => {
+    const displayValue = value.split(' (')[0];
+    activeFilterList.push( /*#__PURE__*/React.createElement(FilterTag, {
+      key: traitName,
+      label: `${traitName}: ${displayValue}`,
+      onRemove: () => handleRemoveTrait(traitName)
+    }));
+  });
+  if (activeFilterList.length === 0) return null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "mb-4 p-3 bg-gray-200 rounded-lg flex items-center flex-wrap gap-2 text-gray-800"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold text-sm mr-2"
+  }, "Active Filters:"), activeFilterList, /*#__PURE__*/React.createElement("button", {
+    onClick: handleClearAll,
+    className: "ml-auto py-1 px-3 bg-red-500 text-white text-xs font-bold rounded-full hover:bg-red-600 transition-colors"
+  }, "Clear All"));
+};
+const MemoizedActiveFilters = /*#__PURE__*/memo(ActiveFilters);
+const RarityLegend = () => /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("h3", {
+  className: "text-sm font-semibold text-gray-800 mb-2 text-center"
+}, "Rarity Legend"), /*#__PURE__*/React.createElement("div", {
+  className: "space-y-1.5"
+}, RARITY_LEGEND_DATA.map(({
+  tier,
+  stars,
+  supplyRange,
+  colorClass
+}) => /*#__PURE__*/React.createElement("div", {
+  key: tier,
+  className: "flex items-center justify-between text-xs"
+}, /*#__PURE__*/React.createElement("div", {
+  className: "flex items-center gap-2"
+}, /*#__PURE__*/React.createElement("span", {
+  className: `font-bold w-20 ${colorClass}`
+}, tier), /*#__PURE__*/React.createElement("div", {
+  className: "flex"
+}, Array.from({
+  length: stars
+}).map((_, i) => /*#__PURE__*/React.createElement(StarIcon, {
+  key: i,
+  className: `h-3 w-3 ${colorClass}`
+})))), /*#__PURE__*/React.createElement("span", {
+  className: "text-gray-500 font-medium"
+}, "Supply: ", supplyRange)))), /*#__PURE__*/React.createElement("hr", {
+  className: "my-4 border-gray-200"
+}), /*#__PURE__*/React.createElement("p", {
+  className: "text-xs text-gray-600 text-center italic"
+}, "Note: The glowing effect on a card is determined by its ", /*#__PURE__*/React.createElement("span", {
+  className: "font-semibold"
+}, "'Bro Type'"), " rarity."));
+const MemoizedRarityLegend = /*#__PURE__*/memo(RarityLegend);
+const RarityLegendModal = ({
+  isOpen,
+  onClose
+}) => {
+  if (!isOpen) return null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4",
+    onClick: onClose,
+    "aria-modal": "true",
+    role: "dialog"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 relative",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    className: "absolute top-3 right-3 p-2 rounded-full hover:bg-gray-200 transition-colors",
+    "aria-label": "Close rarity legend"
+  }, /*#__PURE__*/React.createElement(CloseIcon, null)), /*#__PURE__*/React.createElement(MemoizedRarityLegend, null)));
+};
+const IpDisclaimerModal = ({
+  isOpen,
+  onClose
+}) => {
+  if (!isOpen) return null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 bg-black/60 z-[70] flex items-center justify-center p-4",
+    onClick: onClose,
+    "aria-modal": "true",
+    role: "dialog"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 relative",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    className: "absolute top-3 right-3 p-2 rounded-full hover:bg-gray-200 transition-colors",
+    "aria-label": "Close disclaimer"
+  }, /*#__PURE__*/React.createElement(CloseIcon, null)), /*#__PURE__*/React.createElement("h3", {
+    className: "text-lg font-bold text-snes-text-dark mb-4"
+  }, "Disclaimer: Collection Display and Flagged Assets"), /*#__PURE__*/React.createElement("div", {
+    className: "space-y-3 text-sm text-snes-text-dark"
+  }, /*#__PURE__*/React.createElement("p", null, "This catalog is designed to display and organize the assets of this NFT collection. However, a number of assets have been identified through public community discussion as containing elements that may pose a risk of intellectual property (IP) infringement."), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold"
+  }, "Our Default View:"), " To ensure a straightforward browsing experience and to acknowledge potential marketplace listing challenges, these community-flagged assets are hidden by default in our catalog. This is not a permanent removal, but a default filter setting."), /*#__PURE__*/React.createElement("p", null, /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold"
+  }, "User Discretion:"), " All users have the ability to disable this filter and view the complete, unfiltered collection. By choosing to display these assets, you acknowledge that you understand the potential risks associated with them."), /*#__PURE__*/React.createElement("p", {
+    className: "italic text-xs text-gray-600 mt-2"
+  }, "The \"IP Risk\" designation is based on publicly available community feedback and is not a definitive legal judgment made by this platform. We strongly encourage all users to do their own research (DYOR) before buying, selling, or trading any NFT. This information does not constitute legal or financial advice."))));
+};
+const FilterSidebar = ({
+  isOpen,
+  onClose,
+  filters,
+  setFilters,
+  traitOptions,
+  showIpConcern,
+  setShowIpConcern
+}) => {
+  const [isLegendModalOpen, setIsLegendModalOpen] = useState(false);
+  const [isDisclaimerOpen, setIsDisclaimerOpen] = useState(false);
+  const handleFilterChange = useCallback((key, value) => setFilters(prev => ({
+    ...prev,
+    [key]: value
+  })), [setFilters]);
+  const handleTraitChange = useCallback((traitName, value) => setFilters(prev => {
+    const newTraits = {
+      ...prev.traits
+    };
+    if (value === '') delete newTraits[traitName];else newTraits[traitName] = value;
+    return {
+      ...prev,
+      traits: newTraits
+    };
+  }), [setFilters]);
+  const resetFilters = useCallback(() => {
+    setFilters({
+      id: '',
+      owner: '',
+      rarity: '',
+      traits: {}
+    });
+    setShowIpConcern(false);
+  }, [setFilters, setShowIpConcern]);
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("aside", {
+    className: `fixed top-0 right-0 h-full w-1/2 lg:w-1/3 bg-white shadow-2xl transform transition-transform duration-300 ease-in-out z-50 ${isOpen ? 'translate-x-0' : 'translate-x-full'}`
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col h-full"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center p-4 border-b"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "text-lg font-semibold"
+  }, "Filters"), /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    className: "p-1 rounded-full hover:bg-gray-200"
+  }, /*#__PURE__*/React.createElement(CloseIcon, null))), /*#__PURE__*/React.createElement("div", {
+    className: "flex-1 overflow-y-auto p-4 space-y-6"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-3 bg-red-50 rounded-lg border border-red-200"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center justify-between"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement("label", {
+    htmlFor: "ip-toggle",
+    className: "font-semibold text-red-800 text-sm cursor-pointer"
+  }, "Show IP Risk Items"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIsDisclaimerOpen(true),
+    "aria-label": "Show IP risk information"
+  }, /*#__PURE__*/React.createElement(InfoIcon, {
+    className: "h-4 w-4 text-gray-400 hover:text-gray-600"
+  }))), /*#__PURE__*/React.createElement("div", {
+    className: "relative inline-flex items-center"
+  }, /*#__PURE__*/React.createElement("input", {
+    type: "checkbox",
+    id: "ip-toggle",
+    checked: showIpConcern,
+    onChange: e => setShowIpConcern(e.target.checked),
+    className: "sr-only peer"
+  }), /*#__PURE__*/React.createElement("label", {
+    htmlFor: "ip-toggle",
+    className: "w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-500 cursor-pointer"
+  })))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", {
+    className: "block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2"
+  }, /*#__PURE__*/React.createElement(StarIcon, {
+    className: "h-4 w-4 text-gray-600"
+  }), /*#__PURE__*/React.createElement("span", null, "Filter by Rarity"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIsLegendModalOpen(true),
+    "aria-label": "Open rarity legend"
+  }, /*#__PURE__*/React.createElement(InfoIcon, {
+    className: "h-4 w-4 text-gray-400 cursor-pointer hover:text-gray-600"
+  })))), /*#__PURE__*/React.createElement("select", {
+    value: filters.rarity,
+    onChange: e => handleFilterChange('rarity', e.target.value),
+    className: "w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary bg-white"
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "All Rarities"), RARITY_LEVELS.map(level => /*#__PURE__*/React.createElement("option", {
+    key: level,
+    value: level
+  }, level)))), Object.entries(traitOptions).map(([traitName, values]) => {
+    const Icon = TRAIT_ICONS[traitName];
+    return /*#__PURE__*/React.createElement("div", {
+      key: traitName
+    }, /*#__PURE__*/React.createElement("label", {
+      htmlFor: `trait-${traitName}`,
+      className: "block text-sm font-medium text-gray-700 mb-2 whitespace-nowrap"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "flex items-center gap-2"
+    }, Icon && /*#__PURE__*/React.createElement(Icon, {
+      className: 'h-4 w-4 text-gray-600'
+    }), /*#__PURE__*/React.createElement("span", null, traitName))), /*#__PURE__*/React.createElement("select", {
+      id: `trait-${traitName}`,
+      value: filters.traits[traitName] || '',
+      onChange: e => handleTraitChange(traitName, e.target.value),
+      className: "w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-primary focus:border-primary bg-white"
+    }, /*#__PURE__*/React.createElement("option", {
+      value: ""
+    }, "All"), values.map(val => /*#__PURE__*/React.createElement("option", {
+      key: val,
+      value: val
+    }, val.split(' (')[0]))));
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "p-4 border-t"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: resetFilters,
+    className: "w-full py-2 px-4 bg-red-500 text-white font-semibold rounded-md hover:bg-red-600 transition-colors"
+  }, "Reset Filters")))), /*#__PURE__*/React.createElement(RarityLegendModal, {
+    isOpen: isLegendModalOpen,
+    onClose: () => setIsLegendModalOpen(false)
+  }), /*#__PURE__*/React.createElement(IpDisclaimerModal, {
+    isOpen: isDisclaimerOpen,
+    onClose: () => setIsDisclaimerOpen(false)
+  }));
+};
+const MemoizedFilterSidebar = /*#__PURE__*/memo(FilterSidebar);
+const ImageModal = ({
+  imageUrl,
+  onClose
+}) => {
+  if (!imageUrl) return null;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 bg-black/80 z-[70] flex items-center justify-center p-4",
+    onClick: onClose,
+    "aria-modal": "true",
+    role: "dialog"
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    className: "absolute top-4 right-4 p-2 text-white rounded-full hover:bg-white/20 transition-colors",
+    "aria-label": "Close image view"
+  }, /*#__PURE__*/React.createElement(CloseIcon, {
+    className: "h-8 w-8"
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "relative",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("img", {
+    src: imageUrl,
+    alt: "Enlarged NFT",
+    className: "max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+  })));
+};
+const TraitDetailModal = ({
+  trait,
+  onClose
+}) => {
+  if (!trait) return null;
+  const Icon = TRAIT_ICONS[trait['Trait Type']];
+  const rarityInfo = getRarityInfoFromSupply(parseInt(trait.Supply, 10));
+  const legendData = RARITY_LEGEND_DATA.find(r => r.tier === rarityInfo.tier);
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 bg-black/60 z-[60] flex items-center justify-center p-4",
+    onClick: onClose,
+    "aria-modal": "true",
+    role: "dialog"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-white rounded-xl shadow-2xl w-full max-w-sm relative",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    className: "absolute top-3 right-3 p-2 rounded-full hover:bg-gray-200 transition-colors z-10",
+    "aria-label": "Close trait details"
+  }, /*#__PURE__*/React.createElement(CloseIcon, null)), /*#__PURE__*/React.createElement("div", {
+    className: "p-6 pt-10"
+  }, legendData && /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center bg-gray-100 p-2 rounded-md mb-4 text-sm"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-2 flex-wrap"
+  }, /*#__PURE__*/React.createElement("span", {
+    className: `font-bold ${rarityInfo.className}`
+  }, rarityInfo.tier), /*#__PURE__*/React.createElement(RarityStarsDisplay, {
+    tier: rarityInfo.tier,
+    className: "h-4 w-4"
+  }), /*#__PURE__*/React.createElement("span", {
+    className: "text-gray-500 font-medium whitespace-nowrap"
+  }, "(Supply: ", legendData.supplyRange, ")")), /*#__PURE__*/React.createElement("span", {
+    className: "font-semibold text-gray-600 ml-2"
+  }, "Supply: ", /*#__PURE__*/React.createElement("span", {
+    className: "font-bold text-gray-800"
+  }, trait.Supply))), /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center gap-3 mb-3"
+  }, Icon && /*#__PURE__*/React.createElement("div", {
+    className: "p-2 bg-gray-100 rounded-md"
+  }, /*#__PURE__*/React.createElement(Icon, {
+    className: "h-6 w-6 text-primary"
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("p", {
+    className: "text-xs text-gray-500"
+  }, trait['Trait Type']), /*#__PURE__*/React.createElement("p", {
+    className: `font-semibold text-lg ${rarityInfo.className}`
+  }, trait['Unique Item List']))), /*#__PURE__*/React.createElement("h3", {
+    className: `text-xl font-bold text-center mb-2 ${rarityInfo.className}`
+  }, `"${trait.Title || "No Title"}"`), /*#__PURE__*/React.createElement("p", {
+    className: "text-sm text-gray-700"
+  }, trait.Description || "No description available."))));
+};
+const TraitItem = ({
+  label,
+  value,
+  icon: Icon,
+  onClick,
+  hasDetails
+}) => /*#__PURE__*/React.createElement("button", {
+  onClick: onClick,
+  disabled: !hasDetails,
+  className: `bg-gray-100 p-3 rounded-md text-left w-full transition-all duration-200 ${hasDetails ? 'hover:bg-primary/10 hover:shadow-md cursor-pointer' : 'opacity-70 cursor-not-allowed'}`
+}, /*#__PURE__*/React.createElement("div", {
+  className: "flex items-center gap-2 mb-1"
+}, Icon && /*#__PURE__*/React.createElement(Icon, {
+  className: "h-4 w-4 text-gray-500"
+}), /*#__PURE__*/React.createElement("p", {
+  className: "text-xs font-semibold text-gray-500 uppercase"
+}, label)), /*#__PURE__*/React.createElement("p", {
+  className: `font-medium ${getRarityClass(value)}`
+}, value?.split(' (')[0].trim() || 'None'));
+const RarityInfoBlock = ({
+  title,
+  tier,
+  source,
+  className = ''
+}) => {
+  const rarityStyles = {
+    Grail: 'bg-grail/10 border-grail text-grail',
+    Legendary: 'bg-legendary/10 border-legendary text-legendary',
+    Epic: 'bg-epic/10 border-epic text-epic',
+    Rare: 'bg-rare/10 border-rare text-rare',
+    Uncommon: 'bg-uncommon/10 border-uncommon text-uncommon',
+    Common: 'bg-common/10 border-common text-common',
+    'N/A': 'bg-gray-400/10 border-gray-400 text-gray-400'
+  };
+  const style = rarityStyles[tier] || rarityStyles['N/A'];
+  const fullTitle = source ? `${title} (from ${source})` : title;
+  return /*#__PURE__*/React.createElement("div", {
+    className: `p-3 rounded-lg border-l-4 ${style} ${className}`
+  }, /*#__PURE__*/React.createElement("p", {
+    className: "text-sm font-semibold text-gray-600"
+  }, fullTitle), /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-between items-center mt-1"
+  }, /*#__PURE__*/React.createElement("p", {
+    className: `text-lg font-bold`
+  }, tier), /*#__PURE__*/React.createElement(RarityStarsDisplay, {
+    tier: tier
+  })));
+};
+const NftModal = ({
+  nft,
+  onClose,
+  traitDetails,
+  onTraitClick,
+  onImageClick
+}) => {
+  const broTypeRarity = getRarityInfoFromTrait(nft['Bro Type']);
+  const bestItemRarity = getBestItemRarity(nft);
+  const showBestItemRarity = bestItemRarity.tier !== 'N/A' && bestItemRarity.tier !== 'Common';
+  const imageUrl = nft.Image || `https://picsum.photos/seed/${nft.ID}/500`;
+  return /*#__PURE__*/React.createElement("div", {
+    className: "fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4",
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "bg-white rounded-xl shadow-2xl w-full max-w-sm max-h-[90vh] overflow-y-auto flex flex-col",
+    onClick: e => e.stopPropagation()
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "p-3 flex justify-between items-center border-b sticky top-0 bg-white z-10"
+  }, /*#__PURE__*/React.createElement("h2", {
+    className: "text-lg font-bold text-primary"
+  }, "Hemi Bro #", nft.ID), /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    className: "p-2 rounded-full hover:bg-gray-200"
+  }, /*#__PURE__*/React.createElement(CloseIcon, null))), /*#__PURE__*/React.createElement("div", {
+    className: "p-4 space-y-3"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex justify-center"
+  }, /*#__PURE__*/React.createElement("img", {
+    src: imageUrl,
+    alt: `Hemi Bro #${nft.ID}`,
+    className: "w-40 h-40 rounded-lg shadow-lg cursor-pointer hover:scale-105 transition-transform duration-200",
+    onClick: () => onImageClick(imageUrl)
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-1 sm:grid-cols-2 gap-2"
+  }, /*#__PURE__*/React.createElement(RarityInfoBlock, {
+    title: "Bro Type Rarity",
+    tier: broTypeRarity.tier,
+    className: !showBestItemRarity ? 'sm:col-span-2' : ''
+  }), showBestItemRarity && /*#__PURE__*/React.createElement(RarityInfoBlock, {
+    title: "Best Item Rarity",
+    tier: bestItemRarity.tier,
+    source: bestItemRarity.sourceTrait
+  })), /*#__PURE__*/React.createElement("div", {
+    className: "border-t border-gray-200"
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "grid grid-cols-2 gap-2"
+  }, Object.entries(TRAIT_MAP).map(([key, label]) => {
+    const traitValue = nft[key];
+    const traitKey = createTraitKey(key, traitValue);
+    const details = traitDetails[traitKey];
+    return /*#__PURE__*/React.createElement(TraitItem, {
+      key: key,
+      label: label,
+      value: traitValue,
+      icon: TRAIT_ICONS[label],
+      onClick: () => details && onTraitClick(details),
+      hasDetails: !!details
+    });
+  })))));
+};
+const MemoizedNftModal = /*#__PURE__*/memo(NftModal);
+const Header = () => {
+  const navLinkClasses = "px-3 py-2 text-sm font-medium text-gray-300 rounded-md hover:bg-white/20 hover:text-white transition-colors";
+  const activeNavLinkClasses = "bg-white/20 text-white";
+  return /*#__PURE__*/React.createElement("header", {
+    className: "bg-gradient-to-r from-primary to-secondary shadow-md sticky top-0 z-40"
+  }, /*#__PURE__*/React.createElement("nav", {
+    className: "container mx-auto px-4 py-2 flex justify-center items-center"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "flex items-center space-x-2 sm:space-x-4"
+  }, /*#__PURE__*/React.createElement(NavLink, {
+    to: "/",
+    className: ({
+      isActive
+    }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses
+  }, "Gallery"), /*#__PURE__*/React.createElement(NavLink, {
+    to: "/encyclopedia",
+    className: ({
+      isActive
+    }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses
+  }, "Encyclopedia"), /*#__PURE__*/React.createElement(NavLink, {
+    to: "/history",
+    className: ({
+      isActive
+    }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses
+  }, "History"), /*#__PURE__*/React.createElement(NavLink, {
+    to: "/links",
+    className: ({
+      isActive
+    }) => isActive ? `${navLinkClasses} ${activeNavLinkClasses}` : navLinkClasses
+  }, "Links"))));
+};
+
+// --- PAGES ---
+const Gallery = () => {
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [selectedNft, setSelectedNft] = useState(null);
+  const [enlargedImageUrl, setEnlargedImageUrl] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(40);
+  const {
+    nfts,
+    filteredNfts,
+    filters,
+    setFilters,
+    traitOptions,
+    loading,
+    error,
+    showIpConcern,
+    setShowIpConcern,
+    traitDetails
+  } = useNfts();
+  const [traitForModal, setTraitForModal] = useState(null);
+  const [idInput, setIdInput] = useState(filters.id);
+
+  // Debounce ID input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (idInput !== filters.id) {
+        setFilters(prev => ({ ...prev, id: idInput }));
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [idInput, filters.id, setFilters]);
+
+  // Sync idInput when filters are cleared externally
+  useEffect(() => {
+    setIdInput(filters.id);
+  }, [filters.id]);
+
+  useEffect(() => {
+    setVisibleCount(40);
+    window.scrollTo(0, 0);
+  }, [filters, showIpConcern]);
+
+  const observer = useRef(null);
+  const lastNftElementRef = useCallback(node => {
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && visibleCount < filteredNfts.length) {
+        setVisibleCount(prevCount => prevCount + 40);
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, [loading, visibleCount, filteredNfts.length]);
+
+  const handleCardClick = useCallback(nft => setSelectedNft(nft), []);
+  const handleImageClick = useCallback(url => setEnlargedImageUrl(url), []);
+  const closeModal = useCallback(() => setSelectedNft(null), []);
+  const closeImageModal = useCallback(() => setEnlargedImageUrl(null), []);
+  const closeSidebar = useCallback(() => setIsSidebarOpen(false), []);
+  const closeTraitModal = useCallback(() => setTraitForModal(null), []);
+  const visibleNfts = useMemo(() => filteredNfts.slice(0, visibleCount), [filteredNfts, visibleCount]);
+
+  return /*#__PURE__*/React.createElement("div", {
+    className: "relative min-h-screen bg-gray-50"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: `transition-all duration-300 ${isSidebarOpen ? 'w-1/2 lg:w-2/3' : 'w-full'}`
+  }, /*#__PURE__*/React.createElement("main", {
+    className: "w-full p-2 sm:p-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "w-full flex justify-center py-4"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "relative w-full max-w-xs"
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+  }, /*#__PURE__*/React.createElement(IdIcon, {
+    className: "h-5 w-5 text-gray-400"
+  })), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    value: idInput,
+    onChange: e => setIdInput(e.target.value),
+    placeholder: "Search by ID...",
+    className: "w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:ring-primary focus:border-primary shadow-sm",
+    "aria-label": "Search by NFT ID"
+  }))), loading && /*#__PURE__*/React.createElement("div", {
+    className: "text-center p-10"
+  }, "Loading NFTs..."), error && /*#__PURE__*/React.createElement("div", {
+    className: "text-center p-10 text-red-500"
+  }, error), !loading && !error && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "mb-4 text-center text-sm text-gray-600"
+  }, "Showing ", filteredNfts.length, " of ", showIpConcern ? nfts.length : nfts.filter(n => !n.isIpConcern).length, " NFTs"), /*#__PURE__*/React.createElement(MemoizedActiveFilters, {
+    filters: filters,
+    setFilters: setFilters
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "grid gap-3 sm:gap-4 grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5"
+  }, visibleNfts.map((nft, index) => /*#__PURE__*/React.createElement(MemoizedNftCard, {
+    ref: visibleNfts.length === index + 1 ? lastNftElementRef : null,
+    key: nft.ID,
+    nft: nft,
+    onCardClick: handleCardClick,
+    isSidebarOpen: isSidebarOpen
+  })))))), /*#__PURE__*/React.createElement(MemoizedFilterSidebar, {
+    isOpen: isSidebarOpen,
+    onClose: closeSidebar,
+    filters: filters,
+    setFilters: setFilters,
+    traitOptions: traitOptions,
+    showIpConcern: showIpConcern,
+    setShowIpConcern: setShowIpConcern
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setIsSidebarOpen(true),
+    className: "fixed bottom-4 right-4 bg-gradient-to-br from-yellow-400 via-amber-500 to-yellow-600 text-white p-4 rounded-full shadow-xl hover:scale-110 transition-transform z-40 border-2 border-amber-700 opacity-70 hover:opacity-100",
+    "aria-label": "Open filters"
+  }, /*#__PURE__*/React.createElement(SlidersIcon, null)), selectedNft && /*#__PURE__*/React.createElement(MemoizedNftModal, {
+    nft: selectedNft,
+    onClose: closeModal,
+    traitDetails: traitDetails,
+    onTraitClick: setTraitForModal,
+    onImageClick: handleImageClick
+  }), traitForModal && /*#__PURE__*/React.createElement(TraitDetailModal, {
+    trait: traitForModal,
+    onClose: closeTraitModal
+  }), enlargedImageUrl && /*#__PURE__*/React.createElement(ImageModal, {
+    imageUrl: enlargedImageUrl,
+    onClose: closeImageModal
+  }));
+};
+
+// --- APP ---
+const PlaceholderPage = ({
+  title
+}) => /*#__PURE__*/React.createElement("div", {
+  className: "flex items-center justify-center h-full text-2xl text-gray-500"
+}, title, " Page - Coming Soon");
+const App = () => {
+  return /*#__PURE__*/React.createElement(HashRouter, null, /*#__PURE__*/React.createElement("div", {
+    className: "flex flex-col h-screen overflow-hidden"
+  }, /*#__PURE__*/React.createElement(Header, null), /*#__PURE__*/React.createElement("main", {
+    className: "flex-1 overflow-y-auto"
+  }, /*#__PURE__*/React.createElement(Routes, null, /*#__PURE__*/React.createElement(Route, {
+    path: "/",
+    element: /*#__PURE__*/React.createElement(Gallery, null)
+  }), /*#__PURE__*/React.createElement(Route, {
+    path: "/encyclopedia",
+    element: /*#__PURE__*/React.createElement(PlaceholderPage, {
+      title: "Encyclopedia"
+    })
+  }), /*#__PURE__*/React.createElement(Route, {
+    path: "/history",
+    element: /*#__PURE__*/React.createElement(PlaceholderPage, {
+      title: "History"
+    })
+  }), /*#__PURE__*/React.createElement(Route, {
+    path: "/links",
+    element: /*#__PURE__*/React.createElement(PlaceholderPage, {
+      title: "Links"
+    })
+  })))));
+};
+
+// --- RENDER ---
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render( /*#__PURE__*/React.createElement(React.StrictMode, null, /*#__PURE__*/React.createElement(App, null)));
+    </script>
+  </body>
+</html>
