@@ -1,0 +1,1379 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hemi Bros NFT Gallery</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    
+    <style>
+      body {
+        font-family: 'ui-sans-serif', 'system-ui', sans-serif;
+        background-color: #d1d1d1;
+        background-image: linear-gradient(45deg, #c6c6c6 25%, transparent 25%), 
+                          linear-gradient(-45deg, #c6c6c6 25%, transparent 25%), 
+                          linear-gradient(45deg, transparent 75%, #c6c6c6 75%), 
+                          linear-gradient(-45deg, transparent 75%, #c6c6c6 75%);
+        background-size: 8px 8px;
+      }
+      
+      /* RPG / Diablo Style Scrollbar */
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 8px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f1f1; 
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #c1c1c1; 
+        border-radius: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #a8a8a8; 
+      }
+
+      /* Glow Animations */
+      @keyframes grail-glow {
+        0%, 100% { box-shadow: 0 0 15px #e60012, 0 0 25px #ff1a2d; }
+        50% { box-shadow: 0 0 30px #ff3344, 0 0 50px #ff4d5d; }
+      }
+      @keyframes legendary-glow {
+        0%, 100% { box-shadow: 0 0 10px #ff9900, 0 0 15px #ff9900; }
+        50% { box-shadow: 0 0 20px #ffc966, 0 0 30px #ffc966; }
+      }
+      @keyframes epic-glow {
+        0%, 100% { box-shadow: 0 0 8px #b344f3, 0 0 12px #b344f3; }
+        50% { box-shadow: 0 0 16px #c364ff, 0 0 24px #c364ff; }
+      }
+      @keyframes rare-glow {
+        0%, 100% { box-shadow: 0 0 5px #00a800, 0 0 10px #00a800; }
+        50% { box-shadow: 0 0 15px #33c333, 0 0 20px #33c333; }
+      }
+      
+      .animate-grail-glow { animation: grail-glow 1s linear infinite; }
+      .animate-legendary-glow { animation: legendary-glow 1.8s ease-in-out infinite; }
+      .animate-epic-glow { animation: epic-glow 1.5s ease-in-out infinite; }
+      .animate-rare-glow { animation: rare-glow 2s ease-in-out infinite; }
+      
+      /* Animation Utilities */
+      .animate-in { animation-fill-mode: forwards; }
+      .fade-in { animation-name: fadeIn; }
+      .zoom-in { animation-name: zoomIn; }
+      .slide-in-from-right-10 { --tw-enter-translate-x: 2.5rem; animation-name: enter; }
+      .slide-in-from-top-2 { --tw-enter-translate-y: 0.5rem; animation-name: enterY; }
+
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+      @keyframes zoomIn { from { transform: scale(0.95); } to { transform: scale(1); } }
+      @keyframes enter { from { opacity: 0; transform: translateX(var(--tw-enter-translate-x)); } to { opacity: 1; transform: translateX(0); } }
+      @keyframes enterY { from { opacity: 0; transform: translateY(var(--tw-enter-translate-y)); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "papaparse": "https://aistudiocdn.com/papaparse@^5.5.3",
+    "react-dom": "https://aistudiocdn.com/react-dom@^19.2.0"
+  }
+}
+</script>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel" data-presets="typescript,react">
+        const { useState, useEffect, useMemo, useRef, useCallback } = React;
+        const { createPortal } = ReactDOM;
+
+        // --- CONSTANTS ---
+        const GITHUB_BASE = 'https://cdn.jsdelivr.net/gh/hemibroscommunity-del/Hemi-Bros-catalogue@main';
+        const TRAIT_GRAPHICS_BASE = GITHUB_BASE;
+        const NEW_NFT_DATA_URL = `${GITHUB_BASE}/Hemi%20Bro%20spreadsheet-CleanDataWithImages.csv`;
+        const NEW_SUPPLY_COUNT_URL = `${GITHUB_BASE}/Hemi%20Bro%20spreadsheet-SupplyCount.csv`;
+
+        const RARITY_LEVELS = ['Grail', 'Legendary', 'Epic', 'Rare', 'Uncommon', 'Common'];
+        const TRAIT_CATEGORIES = ['Bro Type', 'Headwear', 'Clothes', 'Eyes', 'Eyewear', 'Mouth Items'];
+
+        const RARITY_TEXT_COLORS = {
+            'Grail': 'text-red-600',
+            'Legendary': 'text-orange-500',
+            'Epic': 'text-purple-600',
+            'Rare': 'text-green-600',
+            'Uncommon': 'text-amber-700',
+            'Common': 'text-gray-500'
+        };
+
+        const RARITY_BG_COLORS = {
+            'Grail': 'bg-red-200',
+            'Legendary': 'bg-orange-200',
+            'Epic': 'bg-purple-200',
+            'Rare': 'bg-green-200',
+            'Uncommon': 'bg-amber-200',
+            'Common': 'bg-gray-200'
+        };
+
+        const FILENAME_OVERRIDES = {};
+
+        // --- UTILS ---
+        const checkIpRisk = (val) => {
+            if (!val) return false;
+            const s = String(val).trim().toLowerCase();
+            return ['yes', 'y', 'true', '1'].includes(s);
+        };
+
+        const getTraitKey = (category, name) => {
+            if (!name) return null;
+            return `${category.trim().toLowerCase()}:${name.trim().toLowerCase()}`;
+        };
+
+        const getTraitThumbnailUrl = (category, filename, traitName) => {
+            const overrideKey = `${category.toLowerCase()}:${traitName.toLowerCase()}`;
+            if (FILENAME_OVERRIDES[overrideKey]) {
+                return `${TRAIT_GRAPHICS_BASE}/${encodeURIComponent(category)}/${encodeURIComponent(FILENAME_OVERRIDES[overrideKey])}`;
+            }
+            if (filename) {
+                return `${TRAIT_GRAPHICS_BASE}/${encodeURIComponent(category)}/${encodeURIComponent(filename)}`;
+            }
+            if (traitName) {
+                return `${TRAIT_GRAPHICS_BASE}/${encodeURIComponent(category)}/${encodeURIComponent(traitName)}.png`;
+            }
+            return undefined;
+        };
+
+        const getRarityFromSupply = (supply) => {
+            const num = typeof supply === 'string' ? parseInt(supply, 10) : supply;
+            if (isNaN(num)) return { tier: 'Common', color: 'gray' };
+            if (num === 1) return { tier: 'Grail', color: 'red' };
+            if (num <= 10) return { tier: 'Legendary', color: 'orange' };
+            if (num <= 25) return { tier: 'Epic', color: 'purple' };
+            if (num <= 50) return { tier: 'Rare', color: 'green' };
+            if (num <= 100) return { tier: 'Uncommon', color: 'amber' };
+            return { tier: 'Common', color: 'gray' };
+        };
+
+        const getNftRarity = (nft) => {
+            if (nft.rarity) return nft.rarity;
+            let minSupply = Infinity;
+            TRAIT_CATEGORIES.forEach(cat => {
+                const val = nft[cat];
+                if (typeof val === 'string') {
+                    const match = val.match(/\((\d+)\)/);
+                    if (match) {
+                        const supply = parseInt(match[1], 10);
+                        if (!isNaN(supply) && supply < minSupply) {
+                            minSupply = supply;
+                        }
+                    }
+                }
+            });
+            return getRarityFromSupply(minSupply === Infinity ? 999 : minSupply);
+        };
+
+        // --- DATA SERVICE ---
+        const fetchData = async () => {
+            try {
+                const [nftRes, traitRes] = await Promise.all([
+                    fetch(NEW_NFT_DATA_URL),
+                    fetch(NEW_SUPPLY_COUNT_URL)
+                ]);
+                if (!nftRes.ok || !traitRes.ok) throw new Error('Failed to fetch data from GitHub.');
+
+                const nftText = await nftRes.text();
+                const traitText = await traitRes.text();
+
+                const traitMap = {};
+
+                // Parse Traits
+                await new Promise((resolve, reject) => {
+                    Papa.parse(traitText, {
+                        header: true,
+                        skipEmptyLines: true,
+                        complete: (results) => {
+                            results.data.forEach((d) => {
+                                const keys = Object.keys(d);
+                                let categoryVal = d.Category;
+                                let itemListVal = d['Unique Item List'];
+
+                                if (!categoryVal || !itemListVal) {
+                                    const catKey = keys.find(k => k.trim().toLowerCase() === 'category');
+                                    const itemKey = keys.find(k => ['unique item list', 'item name', 'trait name'].includes(k.trim().toLowerCase()));
+                                    if (catKey) categoryVal = d[catKey];
+                                    if (itemKey) itemListVal = d[itemKey];
+                                }
+
+                                if (categoryVal && itemListVal) {
+                                    let category = categoryVal.trim();
+                                    const lowerCat = category.toLowerCase();
+
+                                    if (lowerCat === 'head' || lowerCat === 'hats') category = 'Headwear';
+                                    else if (lowerCat === 'face' || lowerCat === 'glasses') category = 'Eyewear';
+                                    else if (lowerCat === 'mouth') category = 'Mouth Items';
+                                    else if (lowerCat === 'torso' || lowerCat === 'clothing' || lowerCat === 'shirt') category = 'Clothes';
+                                    else if (lowerCat === 'base' || lowerCat === 'body') category = 'Bro Type';
+
+                                    const key = getTraitKey(category, itemListVal);
+
+                                    if (key) {
+                                        const thumbFile = d.ThumbFilename || d.IconName;
+                                        let ipRiskVal = d['IP Concern'] || d['IP Risk'];
+
+                                        if (ipRiskVal === undefined) {
+                                            const riskKey = keys.find(k => {
+                                                const clean = k.trim().toLowerCase();
+                                                return clean === 'ip concern' || clean === 'ip risk' || clean.includes('ip concern') || clean.includes('ip risk');
+                                            });
+                                            if (riskKey) ipRiskVal = d[riskKey];
+                                        }
+
+                                        traitMap[key] = {
+                                            ...d,
+                                            Category: category,
+                                            'IP Risk': ipRiskVal,
+                                            'Unique Item List': itemListVal.trim(),
+                                            thumbnailUrl: getTraitThumbnailUrl(category, thumbFile, itemListVal)
+                                        };
+                                    }
+                                }
+                            });
+                            resolve();
+                        },
+                        error: (err) => reject(new Error(`Failed to parse trait data: ${err.message}`))
+                    });
+                });
+
+                // Parse NFTs
+                const nfts = [];
+                await new Promise((resolve, reject) => {
+                    Papa.parse(nftText, {
+                        header: true,
+                        dynamicTyping: true,
+                        skipEmptyLines: true,
+                        complete: (results) => {
+                            const enriched = results.data
+                                .filter((n) => n.ID)
+                                .map((n) => {
+                                    const enrichedNft = { ...n, hasIpRisk: false };
+                                    let hasRisk = false;
+                                    let minSupply = Infinity;
+                                    const nftKeys = Object.keys(n);
+
+                                    TRAIT_CATEGORIES.forEach(cat => {
+                                        let keyInNft = cat;
+                                        if (n[cat] === undefined) {
+                                            keyInNft = nftKeys.find(k => k.trim().toLowerCase() === cat.toLowerCase()) || cat;
+                                        }
+
+                                        if (n[keyInNft] === undefined) {
+                                            if (cat === 'Headwear') keyInNft = nftKeys.find(k => k.trim().toLowerCase() === 'head') || keyInNft;
+                                            if (cat === 'Bro Type') keyInNft = nftKeys.find(k => k.trim().toLowerCase() === 'body' || k.trim().toLowerCase() === 'base') || keyInNft;
+                                            if (cat === 'Clothes') keyInNft = nftKeys.find(k => k.trim().toLowerCase() === 'torso' || k.trim().toLowerCase() === 'clothing') || keyInNft;
+                                            if (cat === 'Eyewear') keyInNft = nftKeys.find(k => k.trim().toLowerCase() === 'face' || k.trim().toLowerCase() === 'glasses') || keyInNft;
+                                            if (cat === 'Mouth Items') keyInNft = nftKeys.find(k => k.trim().toLowerCase() === 'mouth') || keyInNft;
+                                        }
+
+                                        const value = n[keyInNft];
+                                        if (value) {
+                                            const name = String(value).split(' (')[0].trim();
+                                            const key = getTraitKey(cat, name);
+                                            const detail = key ? traitMap[key] : undefined;
+                                            
+                                            // Supply calculation for Rarity
+                                            let supply = 999;
+                                            const match = String(value).match(/\((\d+)\)/);
+                                            if (match) {
+                                                supply = parseInt(match[1], 10);
+                                            } else if (detail && detail.Supply) {
+                                                supply = parseInt(detail.Supply, 10);
+                                            }
+                                            
+                                            if (!isNaN(supply) && supply < minSupply) {
+                                                minSupply = supply;
+                                            }
+
+                                            if (detail) {
+                                                enrichedNft[cat] = `${name} (${detail.Supply})`;
+                                                if (checkIpRisk(detail['IP Risk'])) hasRisk = true;
+                                            } else {
+                                                enrichedNft[cat] = name;
+                                            }
+                                        }
+                                    });
+                                    
+                                    enrichedNft.hasIpRisk = hasRisk;
+                                    // Pre-calculate rarity
+                                    enrichedNft.rarity = getRarityFromSupply(minSupply === Infinity ? 999 : minSupply);
+                                    
+                                    return enrichedNft;
+                                });
+                            nfts.push(...enriched);
+                            resolve();
+                        },
+                        error: (err) => reject(new Error(`Failed to parse NFT data: ${err.message}`))
+                    });
+                });
+
+                return { nfts, traitMap };
+            } catch (err) {
+                throw err;
+            }
+        };
+
+        // --- COMPONENTS: ICONS ---
+        const CloseIcon = ({ className = "h-6 w-6" }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        );
+
+        const ArrowLeftIcon = ({ className = "h-6 w-6" }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+        );
+
+        const CautionIcon = ({ className = "h-5 w-5" }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+            </svg>
+        );
+
+        const StarIcon = ({ className = "h-5 w-5" }) => (
+            <svg className={className} viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.007z" />
+            </svg>
+        );
+
+        const FilterIcon = () => (
+            <svg className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 6h9.75M10.5 6a1.5 1.5 0 11-3 0m3 0a1.5 1.5 0 10-3 0M3.75 6H7.5m3 12h9.75m-9.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-3.75 0H7.5m9-6h3.75m-3.75 0a1.5 1.5 0 01-3 0m3 0a1.5 1.5 0 00-3 0m-9.75 0h9.75" />
+            </svg>
+        );
+
+        const BookIcon = ({ className = "h-5 w-5 mr-1" }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+            </svg>
+        );
+
+        const GridIcon = ({ className = "h-5 w-5 mr-1" }) => (
+             <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25A2.25 2.25 0 0113.5 8.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+            </svg>
+        );
+
+        const NoneIcon = ({ className = "h-6 w-6" }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+            </svg>
+        );
+
+        // --- COMPONENTS: RARITY BADGE ---
+        const RarityBadge = ({ tier, showName = true, className = "" }) => {
+            const [showLegend, setShowLegend] = useState(false);
+            
+            const colors = {
+                'Grail': 'bg-red-600',
+                'Legendary': 'bg-orange-500',
+                'Epic': 'bg-purple-600',
+                'Rare': 'bg-green-600',
+                'Uncommon': 'bg-amber-700',
+                'Common': 'bg-gray-500'
+            };
+            
+            const ranges = {
+                'Grail': '1',
+                'Legendary': '2 - 10',
+                'Epic': '11 - 25',
+                'Rare': '26 - 50',
+                'Uncommon': '51 - 100',
+                'Common': '101+'
+            };
+            
+            const stars = tier === 'Grail' ? 6 : tier === 'Legendary' ? 5 : tier === 'Epic' ? 4 : tier === 'Rare' ? 3 : tier === 'Uncommon' ? 2 : 1;
+            
+            const handleClick = (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowLegend(!showLegend);
+            };
+
+            const modalContent = showLegend ? (
+                 <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={(e) => { e.stopPropagation(); setShowLegend(false); }}>
+                    <div className="bg-white rounded-xl shadow-2xl overflow-hidden max-w-sm w-full border border-gray-200 animate-in fade-in zoom-in duration-200" onClick={(e) => e.stopPropagation()}>
+                        <div className="bg-gray-50 px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                            <h3 className="text-lg font-bold text-gray-800 font-serif">Rarity Legend</h3>
+                            <button onClick={(e) => { e.stopPropagation(); setShowLegend(false); }} className="text-gray-400 hover:text-gray-700">
+                                <CloseIcon />
+                            </button>
+                        </div>
+                        <div className="p-4 space-y-2">
+                            {RARITY_LEVELS.map(level => {
+                                const levelStars = level === 'Grail' ? 6 : level === 'Legendary' ? 5 : level === 'Epic' ? 4 : level === 'Rare' ? 3 : level === 'Uncommon' ? 2 : 1;
+                                return (
+                                    <div key={level} className={`flex items-center justify-between p-2 rounded ${tier === level ? 'bg-purple-50 ring-1 ring-purple-200' : 'hover:bg-gray-50'}`}>
+                                        <div className="flex items-center gap-2">
+                                            <span className={`w-3 h-3 rounded-full ${colors[level]}`}></span>
+                                            <span className={`text-sm font-bold ${level === tier ? 'text-purple-700' : 'text-gray-700'}`}>{level}</span>
+                                            <div className="flex text-yellow-500">
+                                                    {[...Array(levelStars)].map((_, i) => <StarIcon key={i} className="h-3 w-3" />)}
+                                            </div>
+                                        </div>
+                                        <div className="text-sm font-mono text-gray-500">
+                                            Qty: <span className="font-bold text-gray-800">{ranges[level]}</span>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className="bg-gray-50 px-6 py-3 border-t border-gray-200 text-center text-xs text-gray-500">
+                            Click anywhere to close
+                        </div>
+                    </div>
+                </div>
+            ) : null;
+            
+            return (
+                <React.Fragment>
+                    <div 
+                        onClick={handleClick}
+                        className={`flex items-center gap-1 text-xs font-bold text-white px-2 py-0.5 rounded-full whitespace-nowrap cursor-pointer hover:opacity-90 active:scale-95 transition-transform ${colors[tier] || 'bg-gray-500'} ${className}`}
+                        title="Click to view Rarity Legend"
+                    >
+                        {[...Array(stars)].map((_, i) => <StarIcon key={i} className="h-3 w-3" />)}
+                        {showName && <span>{tier}</span>}
+                    </div>
+
+                    {showLegend && createPortal(modalContent, document.body)}
+                </React.Fragment>
+            );
+        };
+
+        // --- COMPONENTS: NFT CARD ---
+        const NFTCard = React.memo(({ nft, onClick }) => {
+            const { tier } = nft.rarity || getNftRarity(nft);
+            
+            const glowClass = tier === 'Grail' ? 'animate-grail-glow' :
+                            tier === 'Legendary' ? 'animate-legendary-glow' :
+                            tier === 'Epic' ? 'animate-epic-glow' :
+                            tier === 'Rare' ? 'animate-rare-glow' : '';
+            
+            return (
+                <div 
+                    onClick={() => onClick(nft)}
+                    className={`bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:scale-105 transition-transform duration-200 ${glowClass} relative`}
+                    style={{ contentVisibility: 'auto', containIntrinsicSize: '200px' }}
+                >
+                    {nft.hasIpRisk && (
+                         <div className="absolute top-1 right-1 bg-yellow-400 text-yellow-900 rounded-full p-1 z-10 shadow-sm" title="Community Flagged IP Risk">
+                            <CautionIcon className="w-4 h-4" />
+                         </div>
+                    )}
+                    <img 
+                        src={nft.Image} 
+                        alt={`Hemi Bro #${nft.ID}`}
+                        className="w-full aspect-square object-cover"
+                        loading="lazy"
+                        decoding="async"
+                    />
+                    <div className="p-2 flex flex-wrap justify-between items-center gap-y-1">
+                        <span className="font-bold text-sm">#{nft.ID}</span>
+                        <RarityBadge tier={tier} />
+                    </div>
+                </div>
+            );
+        });
+
+        // --- COMPONENTS: ENCYCLOPEDIA ---
+        const Encyclopedia = ({ traitDetails, onTraitClick }) => {
+            const groupedTraits = useMemo(() => {
+                const grouped = {};
+                TRAIT_CATEGORIES.forEach(cat => grouped[cat] = []);
+                
+                Object.values(traitDetails).forEach(trait => {
+                    if (trait.Category && grouped[trait.Category]) {
+                        grouped[trait.Category].push(trait);
+                    }
+                });
+
+                Object.keys(grouped).forEach(cat => {
+                    grouped[cat].sort((a, b) => {
+                        const supplyA = parseInt(a.Supply, 10) || 999;
+                        const supplyB = parseInt(b.Supply, 10) || 999;
+                        // High supply first (Descending)
+                        if (supplyA !== supplyB) return supplyB - supplyA;
+                        return a['Unique Item List'].localeCompare(b['Unique Item List']);
+                    });
+                });
+
+                return grouped;
+            }, [traitDetails]);
+
+            const scrollToCategory = (cat) => {
+                const el = document.getElementById(`cat-${cat}`);
+                if (el) {
+                    const offset = 140; 
+                    const bodyRect = document.body.getBoundingClientRect().top;
+                    const elementRect = el.getBoundingClientRect().top;
+                    const elementPosition = elementRect - bodyRect;
+                    const offsetPosition = elementPosition - offset;
+
+                    window.scrollTo({
+                        top: offsetPosition,
+                        behavior: 'smooth'
+                    });
+                }
+            };
+
+            return (
+                <div className="pb-12">
+                     {/* Category Tabs */}
+                    <div className="sticky top-[72px] z-10 bg-white/95 backdrop-blur-sm border-b border-gray-200 py-3 mb-6">
+                        <div className="flex flex-wrap justify-center px-2 gap-2">
+                        {TRAIT_CATEGORIES.map(cat => (
+                            <button
+                            key={cat}
+                            onClick={() => scrollToCategory(cat)}
+                            className="px-3 py-1.5 md:px-4 md:py-2 bg-gray-100 hover:bg-purple-100 text-gray-700 hover:text-purple-800 rounded-full text-xs md:text-sm font-bold transition-colors border border-gray-200"
+                            >
+                            {cat}
+                            </button>
+                        ))}
+                        </div>
+                    </div>
+
+                    <div className="space-y-8 px-1">
+                    {TRAIT_CATEGORIES.map(category => {
+                        const traits = groupedTraits[category] || [];
+                        if (traits.length === 0) return null;
+
+                        return (
+                            <div id={`cat-${category}`} key={category} className="bg-white rounded-xl shadow-md overflow-hidden scroll-mt-32">
+                                <div className="bg-gradient-to-r from-purple-800 to-gray-700 px-6 py-4">
+                                     <h2 className="text-2xl font-bold text-white font-serif">{category}</h2>
+                                </div>
+                                <div className="p-4 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                                    {traits.map((trait) => {
+                                        const { tier } = getRarityFromSupply(trait.Supply);
+                                        const hasRisk = checkIpRisk(trait['IP Risk']);
+
+                                        return (
+                                            <div 
+                                                key={trait['Unique Item List']}
+                                                className="flex bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer overflow-hidden group h-auto min-h-[8rem]"
+                                                onClick={() => onTraitClick(category, trait['Unique Item List'])}
+                                            >
+                                                {/* Left: Icon */}
+                                                <div className={`w-32 flex-shrink-0 flex items-center justify-center border-r border-gray-100 ${RARITY_BG_COLORS[tier] || 'bg-gray-50'}`}>
+                                                    <div className="w-24 h-24 relative flex items-center justify-center">
+                                                        {trait.thumbnailUrl && trait['Unique Item List'].toLowerCase() !== 'none' ? (
+                                                            <img src={trait.thumbnailUrl} alt={trait['Unique Item List']} className="w-full h-full object-contain" loading="lazy" />
+                                                        ) : trait['Unique Item List'].toLowerCase() === 'none' ? (
+                                                            <div className="w-full h-full flex items-center justify-center">
+                                                                <NoneIcon className="w-12 h-12 text-gray-300" />
+                                                            </div>
+                                                        ) : <span className="text-xs text-gray-400">No Image</span>}
+                                                        
+                                                        {hasRisk && (
+                                                            <div className="absolute top-0 right-0 text-yellow-600 bg-white/80 rounded-bl-lg p-0.5" title="IP Risk">
+                                                                <CautionIcon className="w-4 h-4" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+
+                                                {/* Right: Details */}
+                                                <div className="flex-grow p-2 pl-3 flex flex-col justify-between overflow-hidden">
+                                                    <div>
+                                                        <div className="flex justify-between items-start mb-1">
+                                                            <h3 className={`font-bold text-sm truncate pr-1 ${RARITY_TEXT_COLORS[tier] || 'text-gray-400'}`}>
+                                                                {trait['Unique Item List']}
+                                                            </h3>
+                                                            <div className="flex-shrink-0 scale-75 origin-top-right">
+                                                                <RarityBadge tier={tier} showName={false} />
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        {trait.Title && (
+                                                            <p className={`text-xs font-medium text-gray-600 mb-1 truncate`}>"{trait.Title}"</p>
+                                                        )}
+                                                        
+                                                        {trait.Description && (
+                                                            <p className="text-[11px] text-gray-500 leading-tight" title={trait.Description}>
+                                                                {trait.Description}
+                                                            </p>
+                                                        )}
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between mt-1 pt-1 border-t border-gray-100">
+                                                        <span className="text-[10px] uppercase text-gray-400 font-bold tracking-wider">Supply</span>
+                                                        <span className="text-sm font-mono text-gray-700">{trait.Supply}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        );
+                    })}
+                    </div>
+                </div>
+            );
+        };
+
+        // --- COMPONENTS: DETAIL POPUP MODAL ---
+        const ItemDetailModal = ({ data, onClose }) => {
+            if (!data) return null;
+
+            return (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={onClose}>
+                    <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden relative animate-in fade-in zoom-in duration-200" onClick={e => e.stopPropagation()}>
+                        <button onClick={onClose} className="absolute top-3 right-3 text-gray-400 hover:text-gray-700 z-10 bg-white/50 rounded-full p-1 transition-colors">
+                            <CloseIcon className="w-6 h-6" />
+                        </button>
+                        
+                        <div className="p-6 flex flex-col items-center">
+                            {/* Icon Box */}
+                            <div className={`w-28 h-28 rounded-xl border-2 border-gray-200 flex items-center justify-center p-2 mb-4 shadow-md ${RARITY_BG_COLORS[data.rarity.tier] || 'bg-white'} relative`}>
+                                {checkIpRisk(data.detail?.['IP Risk']) && (
+                                    <div className="absolute top-1 right-1 text-yellow-600 z-10" title="IP Risk">
+                                        <CautionIcon className="w-5 h-5" />
+                                    </div>
+                                )}
+                                {data.detail?.thumbnailUrl && data.name.toLowerCase() !== 'none' ? (
+                                    <img src={data.detail.thumbnailUrl} alt={data.name} className="w-full h-full object-contain drop-shadow-sm" />
+                                ) : (
+                                    <NoneIcon className="w-12 h-12 text-gray-300" />
+                                )}
+                            </div>
+                            
+                            {/* Title/Badge */}
+                            <div className="scale-110 mb-2">
+                                <RarityBadge tier={data.rarity.tier} />
+                            </div>
+                            <h3 className={`text-2xl font-bold font-serif text-center leading-tight mb-1 ${RARITY_TEXT_COLORS[data.rarity.tier]}`}>{data.name}</h3>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mb-6">{data.category}</p>
+                            
+                            {/* Scrollable Content */}
+                            <div className="w-full space-y-4 bg-gray-50 rounded-xl p-4 border border-gray-100 max-h-60 overflow-y-auto custom-scrollbar shadow-inner">
+                                {data.detail?.Title && (
+                                    <div className="text-center">
+                                        <h4 className={`text-sm italic font-serif ${RARITY_TEXT_COLORS[data.rarity.tier]}`}>
+                                            "{data.detail.Title}"
+                                        </h4>
+                                    </div>
+                                )}
+                                {data.detail?.Description ? (
+                                    <p className="text-gray-600 leading-relaxed font-serif text-sm text-center">
+                                        {data.detail.Description}
+                                    </p>
+                                ) : (
+                                    <p className="text-gray-400 italic text-center text-sm">No description available.</p>
+                                )}
+                            </div>
+
+                            {/* Supply Footer */}
+                             <div className="w-full mt-4 flex justify-between items-center bg-white border border-gray-200 rounded-lg p-3 shadow-sm">
+                                <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Supply</span>
+                                <span className="font-mono font-bold text-xl text-gray-700">{data.supply}</span>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- COMPONENTS: MAIN NFT MODAL ---
+        const NFTModal = ({ nft, traitDetails, onClose }) => {
+            const [activeSlot, setActiveSlot] = useState(null);
+
+            useEffect(() => {
+                setActiveSlot(null);
+            }, [nft]);
+
+            if (!nft) return null;
+
+            // Updated Order: Row 1 (Head, Eyes, Eyewear), Row 2 (Bro Type, Mouth, Clothes)
+            const slots = [
+                { category: 'Headwear', label: 'Head' },
+                { category: 'Eyes', label: 'Eyes' },
+                { category: 'Eyewear', label: 'Eyewear' },
+                { category: 'Bro Type', label: 'Bro Type' },
+                { category: 'Mouth Items', label: 'Mouth' },
+                { category: 'Clothes', label: 'Clothes' },
+            ];
+
+            const getSlotData = (category) => {
+                const value = nft[category];
+                if (!value || typeof value !== 'string') return null;
+                const name = value.split(' (')[0].trim();
+                const key = getTraitKey(category, name);
+                const detail = key ? traitDetails[key] : undefined;
+                
+                if (name.toLowerCase() === 'none') {
+                    if (!detail || (!detail.Title && !detail.Description)) {
+                        return null;
+                    }
+                }
+
+                const match = value.match(/\((\d+)\)/);
+                const supply = match ? parseInt(match[1], 10) : (detail ? parseInt(detail.Supply, 10) || 999 : 999);
+                const rarity = getRarityFromSupply(supply);
+                
+                return { name, detail, rarity, supply, value, category };
+            };
+
+            const handleSlotClick = (data) => {
+                if(data) setActiveSlot(data);
+            };
+
+            const rarityBorders = {
+                'Grail': 'border-red-600 shadow-[0_0_10px_rgba(220,38,38,0.3)]',
+                'Legendary': 'border-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.3)]',
+                'Epic': 'border-purple-600 shadow-[0_0_8px_rgba(147,51,234,0.3)]',
+                'Rare': 'border-green-600 shadow-[0_0_5px_rgba(22,163,74,0.3)]',
+                'Uncommon': 'border-amber-700',
+                'Common': 'border-gray-400'
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-2 md:p-6 backdrop-blur-sm" onClick={onClose}>
+                    <div 
+                        className="bg-white w-full max-w-[95vw] md:max-w-7xl h-[95vh] md:h-[70vh] rounded-xl border border-gray-300 shadow-2xl flex flex-col md:flex-row relative overflow-hidden" 
+                        onClick={e => e.stopPropagation()}
+                    >
+
+                        {/* --- PANE 1: NFT INFO --- */}
+                        <div className="w-full md:w-[25%] flex-shrink-0 md:h-full p-2 md:p-4 flex flex-col items-center justify-center bg-gray-100 border-b md:border-b-0 md:border-r border-gray-200 relative min-h-0">
+                            <button onClick={onClose} className="md:hidden absolute top-2 right-2 text-gray-500 hover:text-black z-10 p-1.5 bg-white/50 rounded-full">
+                                <CloseIcon className="w-5 h-5"/>
+                            </button>
+
+                            {/* Main Image */}
+                            <div className="relative flex-shrink-0 flex items-center justify-center w-auto h-32 md:h-auto md:max-h-[50%] aspect-square mb-2 md:mb-4">
+                                <img 
+                                    src={nft.Image}
+                                    alt={`Hemi Bro #${nft.ID}`}
+                                    className="max-w-full max-h-full object-contain rounded-lg md:rounded-xl border-2 md:border-4 border-white shadow-md md:shadow-xl bg-gray-200"
+                                />
+                                {nft.hasIpRisk && (
+                                    <div className="absolute top-1 right-1 md:top-2 md:right-2 bg-yellow-400 text-yellow-900 rounded-full p-1 md:p-2 z-10 shadow-lg border-2 border-white" title="Contains IP Risk Content">
+                                        <CautionIcon className="w-3 h-3 md:w-5 md:h-5" />
+                                    </div>
+                                )}
+                            </div>
+
+                            <div className="flex flex-col items-center z-10 text-center">
+                                 <h2 className="text-xl md:text-2xl font-bold text-gray-800 font-serif tracking-wider leading-none">HEMI BRO #{nft.ID}</h2>
+                                 <div className="mt-2 scale-90 md:scale-100">
+                                    <RarityBadge tier={getNftRarity(nft).tier} />
+                                 </div>
+                            </div>
+                        </div>
+
+                        {/* --- PANE 2: TRAIT GRID (Fills remaining space) --- */}
+                        <div className="w-full flex-1 flex flex-col items-center justify-center bg-white p-4 md:p-8 overflow-y-auto min-h-0">
+                             {/* 3 Columns Grid for 2 Rows */}
+                             <div className="grid grid-cols-3 gap-x-4 gap-y-10 md:gap-x-12 md:gap-y-16 w-full max-w-2xl px-2 items-center justify-center">
+                                {slots.map((slot) => {
+                                    const data = getSlotData(slot.category);
+                                    const borderClass = data ? rarityBorders[data.rarity.tier] : 'border-gray-300 border-dashed';
+                                    const bgClass = data ? (RARITY_BG_COLORS[data.rarity.tier] || 'bg-gray-100') : 'bg-gray-50';
+                                    const hasRisk = checkIpRisk(data?.detail?.['IP Risk']);
+                                    
+                                    return (
+                                        <div key={slot.category} className="flex flex-col items-center">
+                                            <span className="text-[9px] md:text-xs font-bold text-gray-500 uppercase tracking-widest mb-1.5 md:mb-2">{slot.label}</span>
+
+                                            <div 
+                                                onClick={() => handleSlotClick(data)}
+                                                className={`
+                                                    w-24 h-24 md:w-32 md:h-32 relative rounded-xl md:rounded-2xl border-2 cursor-pointer transition-all duration-200 group flex items-center justify-center overflow-hidden shadow-sm
+                                                    ${borderClass}
+                                                    ${data ? 'hover:scale-105 active:scale-95' : ''}
+                                                    ${bgClass}
+                                                `}
+                                            >
+                                                {hasRisk && (
+                                                    <div className="absolute top-1 right-1 text-yellow-600 z-30 bg-white/70 rounded-full p-0.5" title="IP Risk">
+                                                        <CautionIcon className="w-3 h-3 md:w-5 md:h-5" />
+                                                    </div>
+                                                )}
+                                                
+                                                {data?.detail?.thumbnailUrl && data.name.toLowerCase() !== 'none' ? (
+                                                    <img src={data.detail.thumbnailUrl} alt={slot.label} className="w-full h-full object-contain p-1" />
+                                                ) : data?.name.toLowerCase() === 'none' ? (
+                                                    <NoneIcon className="w-1/2 h-1/2 text-gray-400" />
+                                                ) : data ? (
+                                                    <span className="text-[10px] md:text-sm text-gray-500 font-serif text-center px-1 break-words leading-tight">{data.name.substring(0, 15)}...</span>
+                                                ) : (
+                                                    <span className="text-gray-300 text-2xl md:text-4xl opacity-40 font-serif">?</span>
+                                                )}
+                                            </div>
+
+                                            {/* Name and Rarity Badge */}
+                                            <div className="mt-2 flex flex-col items-center text-center w-full">
+                                                {data ? (
+                                                    <>
+                                                         <span className={`text-[10px] md:text-sm font-bold leading-tight line-clamp-1 max-w-[90px] md:max-w-[130px] mb-1 ${RARITY_TEXT_COLORS[data.rarity.tier]}`}>
+                                                            {data.name}
+                                                         </span>
+                                                        <div className="scale-75 md:scale-90 origin-top">
+                                                            <RarityBadge tier={data.rarity.tier} showName={false} />
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-[10px] md:text-xs text-gray-300 italic">Empty</span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                    </div>
+                    
+                    {/* --- DETAIL POPUP MODAL --- */}
+                    {activeSlot && (
+                        <ItemDetailModal data={activeSlot} onClose={() => setActiveSlot(null)} />
+                    )}
+                </div>
+            );
+        };
+
+        const RaritySelect = ({ value, onChange, counts }) => {
+            const [isOpen, setIsOpen] = useState(false);
+            const containerRef = useRef(null);
+
+            useEffect(() => {
+                const handleClickOutside = (event) => {
+                    if (containerRef.current && !containerRef.current.contains(event.target)) {
+                        setIsOpen(false);
+                    }
+                };
+                document.addEventListener('mousedown', handleClickOutside);
+                return () => document.removeEventListener('mousedown', handleClickOutside);
+            }, []);
+
+            return (
+                <div className="mb-2" ref={containerRef}>
+                    <label className="block text-xs font-medium mb-0.5 text-gray-700">Rarity</label>
+                    <div className="relative">
+                        <button 
+                            onClick={() => setIsOpen(!isOpen)}
+                            className="w-full px-2 py-1.5 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:outline-none flex items-center justify-between text-left min-h-[34px]"
+                        >
+                            <span className="flex items-center gap-2">
+                                {value ? <RarityBadge tier={value} showName={false} /> : <span className="text-gray-500 text-sm">All Rarities</span>}
+                            </span>
+                            <svg className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
+                        </button>
+
+                        {isOpen && (
+                            <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                <div 
+                                    className="p-2 hover:bg-gray-100 cursor-pointer text-gray-500 text-sm"
+                                    onClick={() => { onChange(''); setIsOpen(false); }}
+                                >
+                                    All Rarities
+                                </div>
+                                {RARITY_LEVELS.map(tier => {
+                                    const count = counts[tier] || 0;
+                                    if (count === 0 && value !== tier) return null;
+                                    return (
+                                        <div 
+                                            key={tier}
+                                            title={tier}
+                                            className={`p-2 hover:bg-purple-50 cursor-pointer flex items-center justify-between ${value === tier ? 'bg-purple-100' : ''}`}
+                                            onClick={() => { onChange(tier); setIsOpen(false); }}
+                                        >
+                                            <div className="flex items-center">
+                                                <RarityBadge tier={tier} showName={false} />
+                                            </div>
+                                            <span className="text-xs text-gray-500 font-mono">({count})</span>
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        };
+
+        const FilterSidebar = ({ isOpen, onClose, filters, setFilters, traitOptions, traitDetails, facetedCounts }) => {
+          const [activeCategoryModal, setActiveCategoryModal] = useState(null);
+          const [expandedCategories, setExpandedCategories] = useState({});
+
+          const handleTraitChange = (category, value) => {
+            setFilters(prev => {
+                const newTraits = { ...prev.traits };
+                if (value === '') {
+                    delete newTraits[category];
+                } else {
+                    newTraits[category] = value;
+                }
+                return { ...prev, traits: newTraits };
+            });
+          };
+
+          const resetFilters = () => {
+            setFilters({ id: '', rarity: '', traits: {}, showIpRisk: false });
+          };
+
+          const handleCategoryClick = (category) => {
+            // Check if Mobile (md breakpoint is 768px)
+            if (window.innerWidth < 768) {
+              setActiveCategoryModal(category);
+            } else {
+              setExpandedCategories(prev => ({
+                ...prev,
+                [category]: !prev[category]
+              }));
+            }
+          };
+
+          const renderTraitOptionsList = (category, isInline = false) => {
+            return (
+              <div className={`grid grid-cols-1 gap-2 ${isInline ? 'mt-2 pl-1' : 'max-w-2xl mx-auto'}`}>
+                <button
+                  onClick={() => { handleTraitChange(category, ''); if (!isInline) setActiveCategoryModal(null); }}
+                  className={`flex items-center p-2 md:p-3 bg-white border rounded-xl hover:bg-purple-50 transition-colors shadow-sm text-left ${!filters.traits[category] ? 'ring-2 ring-purple-500 border-purple-500' : 'border-gray-200'}`}
+                >
+                  <span className={`flex items-center justify-center bg-gray-100 rounded-lg mr-2 md:mr-3 border border-gray-200 flex-shrink-0 ${isInline ? 'w-8 h-8' : 'w-14 h-14 md:w-16 md:h-16'}`}>
+                    <span className={`${isInline ? 'text-xs' : 'text-lg md:text-xl'} text-gray-400`}>All</span>
+                  </span>
+                  <span className={`${isInline ? 'text-sm' : 'text-lg md:text-xl'} font-medium text-gray-700`}>All {category}</span>
+                </button>
+
+                {traitOptions[category]?.map(opt => {
+                  const name = opt.split(' (')[0];
+                  const key = getTraitKey(category, name);
+                  const detail = key ? traitDetails[key] : null;
+                  const icon = detail?.thumbnailUrl;
+                  const count = facetedCounts.traits[category]?.[opt] || 0;
+                  const hasRisk = checkIpRisk(detail?.['IP Risk']);
+
+                  const isSelected = filters.traits[category] === opt;
+                  if (count === 0 && !isSelected) return null;
+
+                  const match = opt.match(/\((\d+)\)/);
+                  const supply = match ? parseInt(match[1], 10) : 999;
+                  const { tier } = getRarityFromSupply(supply);
+                  const bgClass = RARITY_BG_COLORS[tier] || 'bg-gray-100';
+
+                  return (
+                    <button
+                      key={opt}
+                      onClick={() => { handleTraitChange(category, opt); if (!isInline) setActiveCategoryModal(null); }}
+                      className={`flex items-center p-2 bg-white border rounded-xl hover:bg-purple-50 transition-all shadow-sm text-left ${isSelected ? 'ring-2 ring-purple-500 border-purple-500 bg-purple-50' : 'border-gray-200'}`}
+                    >
+                      <div className={`flex-shrink-0 flex items-center justify-center rounded-lg mr-2 md:mr-3 border border-gray-100 p-0.5 ${bgClass} ${isInline ? 'w-10 h-10' : 'w-16 h-16 md:w-20 md:h-20'}`}>
+                        {icon && name.toLowerCase() !== 'none' ? <img src={icon} alt="" className="w-full h-full object-contain" /> : 
+                         name.toLowerCase() === 'none' ? <NoneIcon className="w-3/4 h-3/4 text-gray-400 m-auto" /> :
+                         <span className="w-full h-full block bg-black/5 rounded"></span>}
+                      </div>
+                      <div className="flex-grow min-w-0">
+                        <div className="flex items-center gap-1.5 mb-0.5">
+                          <span className={`${isInline ? 'text-sm' : 'text-base md:text-lg'} font-bold truncate ${isSelected ? 'text-purple-900' : 'text-gray-800'}`}>{name}</span>
+                          {hasRisk && <div className="bg-gray-200 p-0.5 rounded-full"><CautionIcon className="w-3 h-3 text-gray-500" /></div>}
+                        </div>
+                        <div className="flex items-center justify-between gap-2">
+                          <div className={`origin-left ${isInline ? 'scale-75 md:scale-90' : 'scale-90 md:scale-100'}`}>
+                             <RarityBadge tier={tier} showName={!isInline} />
+                          </div>
+                          <span className={`${isInline ? 'text-[10px] md:text-xs' : 'text-xs md:text-sm'} font-mono text-gray-500`}>Qty: {count}</span>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          };
+
+          const renderCategoryButton = (category) => {
+            const value = filters.traits[category] || '';
+            const selectedName = value ? value.split(' (')[0] : 'All';
+            const selectedKey = value ? getTraitKey(category, selectedName) : null;
+            const selectedIcon = selectedKey ? traitDetails[selectedKey]?.thumbnailUrl : undefined;
+            const isExpanded = expandedCategories[category];
+
+            let selectedBgClass = 'bg-gray-100';
+            if (value) {
+              const match = value.match(/\((\d+)\)/);
+              const supply = match ? parseInt(match[1], 10) : 999;
+              const { tier } = getRarityFromSupply(supply);
+              selectedBgClass = RARITY_BG_COLORS[tier] || 'bg-gray-100';
+            }
+
+            return (
+              <div className="mb-2" key={category}>
+                <label className="block text-xs font-medium mb-0.5 text-gray-700">{category}</label>
+                <button
+                  onClick={() => handleCategoryClick(category)}
+                  className={`w-full px-2 py-1.5 bg-white border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:outline-none flex items-center justify-between text-left min-h-[44px] transition-colors ${isExpanded ? 'bg-purple-50 border-purple-200' : ''}`}
+                >
+                  <span className="flex items-center gap-2 truncate">
+                    {selectedIcon && selectedName.toLowerCase() !== 'none' && <img src={selectedIcon} alt="" className={`w-8 h-8 object-contain rounded p-0.5 ${selectedBgClass}`} />}
+                    {selectedName.toLowerCase() === 'none' && <div className={`w-8 h-8 flex items-center justify-center rounded p-0.5 ${selectedBgClass}`}><NoneIcon className="w-5 h-5 text-gray-400" /></div>}
+                    {selectedName === 'All' ? <span className="text-gray-500 text-sm">Select {category}...</span> : <span className="text-sm font-medium">{selectedName}</span>}
+                  </span>
+                  <ArrowLeftIcon className={`w-5 h-5 text-gray-400 transition-transform ${isExpanded ? '-rotate-90' : 'rotate-180'}`} />
+                </button>
+
+                {/* Desktop Inline Accordion */}
+                {isExpanded && (
+                   <div className="hidden md:block bg-gray-50 rounded-b-lg border-x border-b border-gray-200 p-2 animate-in fade-in slide-in-from-top-2 duration-200">
+                      {renderTraitOptionsList(category, true)}
+                   </div>
+                )}
+              </div>
+            );
+          };
+
+          return (
+            <React.Fragment>
+              <div 
+                className={`fixed inset-0 bg-black/30 z-40 transition-opacity ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+                onClick={onClose}
+              />
+              <aside className={`fixed right-0 top-0 h-full w-1/2 md:w-96 bg-white shadow-2xl z-50 transform transition-transform ${isOpen ? 'translate-x-0' : 'translate-x-full'} flex flex-col`}>
+                <div className="p-3 md:p-4 border-b flex justify-between items-center sticky top-0 bg-white z-10">
+                  <h2 className="text-base md:text-xl font-bold font-serif text-gray-800">Filters</h2>
+                  <button onClick={onClose} className="text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-full p-1 md:p-2 transition-colors">
+                    <CloseIcon className="h-5 w-5 md:h-6 md:w-6" />
+                  </button>
+                </div>
+                
+                <div className="p-3 md:p-4 flex-grow overflow-y-auto space-y-4 relative">
+                    {/* IP Risk Toggle */}
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 md:p-3">
+                         <div className="flex items-center justify-between">
+                            <span className="text-xs md:text-sm font-medium text-yellow-800 flex items-center gap-1">
+                                <CautionIcon className="w-4 h-4" /> <span className="hidden md:inline">Show IP Risk Content</span><span className="md:hidden">IP Risk</span>
+                            </span>
+                            <label className="relative inline-flex items-center cursor-pointer">
+                                <input 
+                                    type="checkbox" 
+                                    className="sr-only peer"
+                                    checked={filters.showIpRisk}
+                                    onChange={(e) => setFilters(prev => ({...prev, showIpRisk: e.target.checked}))}
+                                />
+                                <div className="w-9 h-5 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-yellow-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-yellow-500"></div>
+                            </label>
+                         </div>
+                    </div>
+
+                  <RaritySelect 
+                    value={filters.rarity}
+                    onChange={(val) => setFilters(prev => ({ ...prev, rarity: val }))}
+                    counts={facetedCounts.rarity}
+                  />
+                  
+                  <div className="border-t border-gray-100 pt-2">
+                    <h3 className="text-xs md:text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">Traits</h3>
+                    {TRAIT_CATEGORIES.map(category => renderCategoryButton(category))}
+                  </div>
+                </div>
+                
+                <div className="p-3 md:p-4 sticky bottom-0 bg-white border-t z-10">
+                    <button 
+                        onClick={resetFilters}
+                        className="w-full py-2 md:py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors shadow-sm font-bold text-sm md:text-base"
+                    >
+                        Reset Filters
+                    </button>
+                </div>
+              </aside>
+
+               {/* Mobile Drill-down Modal - Full Screen (Fixed inset-0) */}
+                {activeCategoryModal && (
+                <div className="fixed inset-0 z-[60] bg-white flex flex-col animate-in fade-in slide-in-from-right-10 duration-200 md:hidden">
+                    <div className="p-3 border-b flex items-center justify-between bg-gray-50 shadow-sm sticky top-0 z-10">
+                        <div className="flex items-center gap-2">
+                                <button onClick={() => setActiveCategoryModal(null)} className="p-1 hover:bg-gray-200 rounded-full">
+                                <ArrowLeftIcon className="w-5 h-5 text-gray-600" />
+                                </button>
+                                <h3 className="text-sm font-bold text-gray-800 truncate">{activeCategoryModal}</h3>
+                        </div>
+                        <button onClick={() => setActiveCategoryModal(null)} className="text-gray-500">
+                                <CloseIcon className="w-5 h-5" />
+                        </button>
+                    </div>
+
+                    <div className="flex-grow overflow-y-auto p-2 bg-gray-50">
+                        {renderTraitOptionsList(activeCategoryModal, false)}
+                    </div>
+                </div>
+                )}
+            </React.Fragment>
+          );
+        };
+
+        const App = () => {
+            const [currentView, setCurrentView] = useState('gallery'); // 'gallery' | 'encyclopedia'
+            const [nfts, setNfts] = useState([]);
+            const [traitDetails, setTraitDetails] = useState({});
+            const [loading, setLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const [selectedNft, setSelectedNft] = useState(null);
+            const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+            const [filters, setFilters] = useState({ id: '', rarity: '', traits: {}, showIpRisk: false });
+            const [idInput, setIdInput] = useState('');
+
+            useEffect(() => {
+                const load = async () => {
+                    try {
+                        setLoading(true);
+                        const { nfts: loadedNfts, traitMap } = await fetchData();
+                        setNfts(loadedNfts);
+                        setTraitDetails(traitMap);
+                    } catch (err) {
+                        console.error(err);
+                        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+                    } finally {
+                        setLoading(false);
+                    }
+                };
+                load();
+            }, []);
+
+            useEffect(() => {
+                const timer = setTimeout(() => setFilters(prev => ({ ...prev, id: idInput })), 300);
+                return () => clearTimeout(timer);
+            }, [idInput]);
+
+            const filteredNfts = useMemo(() => {
+                return nfts.filter(nft => {
+                    if (!filters.showIpRisk && nft.hasIpRisk) return false;
+                    
+                    if (filters.id && nft.ID.toString() !== filters.id && filters.id !== '') return false;
+                    
+                    if (filters.rarity) {
+                        const tier = nft.rarity ? nft.rarity.tier : getNftRarity(nft).tier;
+                        if (tier !== filters.rarity) return false;
+                    }
+                    for (const [cat, val] of Object.entries(filters.traits)) {
+                        if (nft[cat] !== val) return false;
+                    }
+                    return true;
+                });
+            }, [nfts, filters]);
+
+            // DYNAMIC FACETED COUNTS LOGIC
+            const facetedCounts = useMemo(() => {
+                const counts = {
+                    rarity: {},
+                    traits: {}
+                };
+                TRAIT_CATEGORIES.forEach(cat => counts.traits[cat] = {});
+
+                const matchesFilters = (nft, excludeCategory) => {
+                    if (!filters.showIpRisk && nft.hasIpRisk) return false;
+                    if (filters.id && nft.ID.toString() !== filters.id && filters.id !== '') return false;
+                    
+                    if (excludeCategory !== 'rarity' && filters.rarity) {
+                        const tier = nft.rarity ? nft.rarity.tier : getNftRarity(nft).tier;
+                        if (tier !== filters.rarity) return false;
+                    }
+
+                    for (const [cat, val] of Object.entries(filters.traits)) {
+                        if (excludeCategory !== cat && val && nft[cat] !== val) return false;
+                    }
+                    return true;
+                };
+
+                // Calculate Rarity Counts
+                nfts.forEach(nft => {
+                    if (matchesFilters(nft, 'rarity')) {
+                        const tier = nft.rarity ? nft.rarity.tier : getNftRarity(nft).tier;
+                        counts.rarity[tier] = (counts.rarity[tier] || 0) + 1;
+                    }
+                });
+
+                // Calculate Trait Counts
+                TRAIT_CATEGORIES.forEach(cat => {
+                    nfts.forEach(nft => {
+                        if (matchesFilters(nft, cat)) {
+                            const val = nft[cat];
+                            if (typeof val === 'string' && val && val !== 'None') {
+                                counts.traits[cat][val] = (counts.traits[cat][val] || 0) + 1;
+                            }
+                        }
+                    });
+                });
+                return counts;
+            }, [nfts, filters]);
+
+            const traitOptions = useMemo(() => {
+                const options = {};
+                TRAIT_CATEGORIES.forEach(cat => {
+                    const values = new Set();
+                    nfts.forEach(nft => {
+                        const val = nft[cat];
+                        if (typeof val === 'string' && val && val !== 'None') values.add(val);
+                    });
+                    options[cat] = Array.from(values).sort((a, b) => a.localeCompare(b));
+                });
+                return options;
+            }, [nfts]);
+
+            const handleEncyclopediaClick = (category, traitName) => {
+                const key = getTraitKey(category, traitName);
+                if (key && traitDetails[key]) {
+                    const fullValue = `${traitName} (${traitDetails[key].Supply})`;
+                    const isRisky = checkIpRisk(traitDetails[key]['IP Risk']);
+
+                    setFilters({
+                        id: '',
+                        rarity: '',
+                        traits: {
+                            [category]: fullValue
+                        },
+                        showIpRisk: isRisky
+                    });
+                    
+                    setCurrentView('gallery');
+                }
+            };
+            
+            // Check if a search is hidden by IP Risk
+            const hiddenByIpRisk = useMemo(() => {
+                if (idInput && filteredNfts.length === 0) {
+                    const nft = nfts.find(n => n.ID.toString() === idInput);
+                    if (nft && nft.hasIpRisk && !filters.showIpRisk) {
+                        return true;
+                    }
+                }
+                return false;
+            }, [idInput, filteredNfts.length, nfts, filters.showIpRisk]);
+
+            if (loading) return <div className="min-h-screen flex items-center justify-center"><div className="text-2xl font-bold text-purple-700 animate-pulse">Loading Hemi Bros...</div></div>;
+            if (error) return <div className="min-h-screen flex items-center justify-center p-4"><div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative text-center"><strong className="font-bold">Error!</strong><span className="block sm:inline ml-2">{error}</span></div></div>;
+
+            return (
+                <div className="min-h-screen flex flex-col">
+                    <div className="sticky top-0 z-40 bg-white shadow-lg">
+                        <header className="bg-gradient-to-r from-purple-800 to-gray-700">
+                            <div className="container mx-auto px-4 py-3 flex flex-col md:flex-row items-center justify-between gap-4">
+                                <h1 className="text-3xl md:text-4xl font-bold text-white tracking-wider cursor-pointer" style={{ fontFamily: 'VT323, monospace' }} onClick={() => setCurrentView('gallery')}>HEMI BROS NFT GALLERY</h1>
+                                <div className="flex bg-gray-900/30 rounded-lg p-1">
+                                    <button 
+                                        onClick={() => setCurrentView('gallery')}
+                                        className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all flex items-center ${currentView === 'gallery' ? 'bg-white text-purple-900 shadow' : 'text-gray-200 hover:text-white hover:bg-white/10'}`}
+                                    >
+                                        <GridIcon /> Gallery
+                                    </button>
+                                    <button 
+                                        onClick={() => setCurrentView('encyclopedia')}
+                                        className={`px-4 py-1.5 rounded-md text-sm font-bold transition-all flex items-center ${currentView === 'encyclopedia' ? 'bg-white text-purple-900 shadow' : 'text-gray-200 hover:text-white hover:bg-white/10'}`}
+                                    >
+                                        <BookIcon /> Encyclopedia
+                                    </button>
+                                </div>
+                            </div>
+                        </header>
+                        
+                        {currentView === 'gallery' && (
+                            <div className="bg-[#d1d1d1] bg-opacity-95 backdrop-blur-sm border-b border-gray-300 py-3 px-4 shadow-sm">
+                                <div className="flex justify-center w-full">
+                                    <input 
+                                        type="search" 
+                                        value={idInput} 
+                                        onChange={e => setIdInput(e.target.value)} 
+                                        placeholder="Search by ID..." 
+                                        className="w-full max-w-sm px-4 py-2 border border-gray-300 rounded-full shadow-inner focus:ring-2 focus:ring-purple-500 focus:outline-none bg-white text-gray-800" 
+                                    />
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <main className="container mx-auto p-4 flex-grow">
+                        {currentView === 'gallery' ? (
+                            <>
+                                <div className="mb-4">
+                                    <div className="text-center text-sm text-gray-600">Showing <span className="font-bold">{filteredNfts.length}</span> of <span className="font-bold">{nfts.length}</span> NFTs</div>
+                                    
+                                    {hiddenByIpRisk && (
+                                        <div className="max-w-md mx-auto mt-4 bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded shadow-md">
+                                            <div className="flex">
+                                                <div className="flex-shrink-0">
+                                                    <CautionIcon className="h-5 w-5 text-yellow-400" />
+                                                </div>
+                                                <div className="ml-3">
+                                                    <p className="text-sm text-yellow-700">
+                                                        Item <span className="font-bold">#{idInput}</span> has been community flagged with one or more items that have IP risk.
+                                                    </p>
+                                                    <div className="mt-2">
+                                                        <button 
+                                                            onClick={() => setFilters(prev => ({ ...prev, showIpRisk: true }))}
+                                                            className="text-sm font-medium text-yellow-800 hover:text-yellow-900 underline"
+                                                        >
+                                                            Show IP Risk Content
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                                    {filteredNfts.map(nft => <NFTCard key={nft.ID} nft={nft} onClick={setSelectedNft} />)}
+                                </div>
+                                
+                                {filteredNfts.length === 0 && !hiddenByIpRisk && (
+                                    <div className="col-span-full text-center py-12 text-gray-500"><h3 className="text-xl font-semibold">No NFTs Found</h3><p>Try adjusting your filters.</p></div>
+                                )}
+                            </>
+                        ) : (
+                            <Encyclopedia traitDetails={traitDetails} onTraitClick={handleEncyclopediaClick} />
+                        )}
+                    </main>
+
+                    {currentView === 'gallery' && (
+                        <>
+                            <button onClick={() => setIsSidebarOpen(true)} aria-label="Open filters" className="fixed bottom-5 right-5 bg-gradient-to-br from-yellow-400 to-amber-600 text-white p-4 rounded-full shadow-xl hover:scale-110 active:scale-100 transition-transform z-30"><FilterIcon /></button>
+                            <FilterSidebar 
+                                isOpen={isSidebarOpen} 
+                                onClose={() => setIsSidebarOpen(false)} 
+                                filters={filters} 
+                                setFilters={setFilters} 
+                                traitOptions={traitOptions} 
+                                traitDetails={traitDetails} 
+                                facetedCounts={facetedCounts}
+                            />
+                        </>
+                    )}
+                    
+                    <NFTModal 
+                        nft={selectedNft} 
+                        traitDetails={traitDetails} 
+                        onClose={() => setSelectedNft(null)} 
+                    />
+                </div>
+            );
+        };
+
+        const rootElement = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<App />);
+    </script>
+</body>
+</html>
