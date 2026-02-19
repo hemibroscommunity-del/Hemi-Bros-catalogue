@@ -1,0 +1,1910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<title>Hemi Bros — Rarity Checker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=VT323&family=Space+Mono:wght@400;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+<style>
+/* ═══════════════════════════════════════════
+   TOKENS
+═══════════════════════════════════════════ */
+:root {
+  --ink:      #0b0c14;
+  --ink2:     #12141f;
+  --ink3:     #1a1d2e;
+  --ink4:     #222639;
+  --line:     #2d3251;
+  --line2:    #3d4470;
+  --pop:      #5b52ff;
+  --pop-soft: rgba(91,82,255,.14);
+  --pop-glow: rgba(91,82,255,.35);
+  --teal:     #00d4b8;
+  --teal-soft:rgba(0,212,184,.12);
+  --txt:      #e8eaf8;
+  --txt2:     #8890b8;
+  --txt3:     #4d5580;
+  --red:      #ff5e6c;
+  --gold:     #f5c542;
+  --green:    #3ddc97;
+  --H: 52px;
+  --SIDEBAR: 272px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--ink)}
+body{font-family:'DM Sans',system-ui,sans-serif;color:var(--txt);font-size:14px;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:3px;height:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--line);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--line2)}
+input,button{font-family:inherit}
+img{display:block}
+button{cursor:pointer}
+
+/* ═══════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════ */
+#root{height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.shell{display:flex;flex-direction:column;height:100%;overflow:hidden}
+
+/* ── Header ── */
+.hd{
+  height:var(--H);flex-shrink:0;
+  background:var(--ink2);
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;
+  padding:0 14px;gap:10px;
+  position:relative;z-index:60;
+}
+.logo{
+  font-family:'VT323',monospace;
+  font-size:1.45rem;letter-spacing:.1em;
+  color:var(--txt);cursor:pointer;user-select:none;white-space:nowrap;
+  flex-shrink:0;
+}
+.logo em{color:var(--teal);font-style:normal}
+
+/* search */
+.srch-wrap{flex:1;position:relative;max-width:340px}
+.srch{
+  width:100%;height:34px;
+  background:var(--ink);
+  border:1.5px solid var(--line);
+  border-radius:8px;
+  color:var(--txt);
+  font-size:13px;
+  padding:0 32px 0 34px;
+  outline:none;
+  transition:border-color .15s,box-shadow .15s;
+}
+.srch::placeholder{color:var(--txt3)}
+.srch:focus{border-color:var(--pop);box-shadow:0 0 0 3px var(--pop-glow)}
+.srch-ico{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--txt3);pointer-events:none;display:flex}
+.srch-x{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--txt3);display:flex;padding:2px;border-radius:4px}
+.srch-x:hover{color:var(--txt);background:var(--ink4)}
+
+.hd-right{margin-left:auto;display:flex;gap:6px;align-items:center;flex-shrink:0}
+
+/* icon buttons */
+.ibtn{
+  width:34px;height:34px;border-radius:8px;
+  background:var(--ink3);border:1.5px solid var(--line);
+  color:var(--txt2);display:flex;align-items:center;justify-content:center;
+  transition:all .12s;flex-shrink:0;
+}
+.ibtn:hover{color:var(--txt);border-color:var(--line2)}
+.ibtn.on{background:var(--pop-soft);border-color:var(--pop);color:var(--txt)}
+.tbtn{
+  height:34px;padding:0 12px;border-radius:8px;
+  background:var(--ink3);border:1.5px solid var(--line);
+  color:var(--txt2);font-size:12px;font-weight:600;
+  display:flex;align-items:center;gap:5px;
+  transition:all .12s;white-space:nowrap;
+}
+.tbtn:hover{color:var(--txt);border-color:var(--line2)}
+.tbtn.on{background:var(--pop-soft);border-color:var(--pop);color:var(--txt)}
+.tbtn .ct{
+  background:var(--pop);color:white;
+  font-size:10px;font-weight:800;
+  border-radius:999px;padding:1px 5px;line-height:1.5;
+}
+
+/* ── Body ── */
+.body{flex:1;display:flex;overflow:hidden}
+
+/* ── Sidebar ── */
+.sidebar{
+  width:var(--SIDEBAR);flex-shrink:0;
+  background:var(--ink2);
+  border-right:1px solid var(--line);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  transition:width .2s ease,opacity .2s ease;
+}
+.sidebar.closed{width:0;opacity:0;pointer-events:none;overflow:hidden}
+.sb-top{
+  padding:10px 14px 8px;
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.sb-top-label{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--txt3)}
+.sb-scroll{flex:1;overflow-y:auto;padding-bottom:16px}
+
+/* Accordion sections */
+.acc-sec{border-bottom:1px solid var(--line)}
+.acc-hd{
+  width:100%;display:flex;align-items:center;gap:8px;
+  padding:10px 14px;background:none;border:none;
+  color:var(--txt);font-size:13px;font-weight:600;
+  text-align:left;cursor:pointer;transition:background .1s;
+}
+.acc-hd:hover{background:var(--ink3)}
+.acc-hd .sel-badge{
+  margin-left:auto;
+  background:var(--pop);color:white;
+  font-size:10px;font-weight:800;
+  border-radius:999px;padding:1px 6px;line-height:1.5;
+}
+.acc-hd .chev{margin-left:auto;color:var(--txt3);transition:transform .15s;flex-shrink:0}
+.acc-hd .chev.open{transform:rotate(180deg)}
+.acc-body{padding:4px 10px 10px}
+
+/* Trait options */
+.topt{
+  display:flex;align-items:center;gap:8px;
+  width:100%;padding:5px 8px;
+  background:none;border:none;border-radius:7px;
+  color:var(--txt2);font-size:12.5px;font-weight:500;
+  text-align:left;cursor:pointer;transition:all .1s;
+}
+.topt:hover{background:var(--ink3);color:var(--txt)}
+.topt.sel{background:var(--pop-soft);color:var(--txt)}
+.topt .chkbox{
+  width:15px;height:15px;border-radius:4px;
+  border:1.5px solid var(--line2);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .1s;background:transparent;
+}
+.topt.sel .chkbox{background:var(--pop);border-color:var(--pop)}
+.topt .tthumb{
+  width:26px;height:26px;border-radius:5px;
+  background:var(--ink4);object-fit:contain;flex-shrink:0;
+}
+.topt .tname{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.topt .tcnt{font-size:11px;color:var(--txt3);flex-shrink:0;font-variant-numeric:tabular-nums}
+
+/* Family chips in sidebar */
+.fam-grid{display:flex;flex-wrap:wrap;gap:5px;padding:6px 10px 10px}
+.fam-c{
+  display:flex;align-items:center;gap:5px;
+  padding:3px 9px;border-radius:999px;
+  border:1.5px solid var(--line);background:var(--ink3);
+  color:var(--txt2);font-size:11.5px;font-weight:600;
+  cursor:pointer;transition:all .1s;
+}
+.fam-c:hover{border-color:var(--line2);color:var(--txt)}
+.fam-c.sel{border-color:var(--pop);background:var(--pop-soft);color:var(--txt)}
+.fam-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+
+/* ── Gallery pane ── */
+.gallery-pane{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* Filter bar (active pills row) */
+.filter-bar{
+  padding:0 14px;height:44px;
+  background:var(--ink2);
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:6px;
+  overflow-x:auto;flex-shrink:0;
+}
+.filter-bar::-webkit-scrollbar{height:0}
+.fpill{
+  display:flex;align-items:center;gap:4px;
+  padding:3px 8px 3px 10px;
+  border-radius:999px;
+  background:var(--pop-soft);border:1px solid var(--pop);
+  color:var(--txt);font-size:11.5px;font-weight:600;
+  white-space:nowrap;flex-shrink:0;
+}
+.fpill button{background:none;border:none;color:var(--txt3);padding:0;line-height:1;font-size:15px;display:flex}
+.fpill button:hover{color:var(--red)}
+.clear-btn{
+  background:none;border:none;color:var(--red);
+  font-size:11px;font-weight:700;padding:3px 7px;
+  border-radius:6px;cursor:pointer;white-space:nowrap;flex-shrink:0;
+}
+.clear-btn:hover{background:rgba(255,94,108,.1)}
+.res-ct{
+  margin-left:auto;flex-shrink:0;
+  font-size:11.5px;color:var(--txt2);white-space:nowrap;
+}
+.res-ct b{font-family:'Space Mono',monospace;color:var(--teal);font-size:13px}
+
+/* ── Grid ── */
+.grid-scroll{flex:1;overflow-y:auto;padding:12px;overflow-x:hidden}
+.nft-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(104px,1fr));
+  gap:9px;
+}
+
+/* ── NFT card ── */
+.card{
+  background:var(--ink2);
+  border:1.5px solid var(--line);
+  border-radius:11px;overflow:hidden;
+  cursor:pointer;
+  content-visibility:auto;
+  contain-intrinsic-size:0 155px;
+  transition:transform .12s,border-color .12s,box-shadow .12s;
+  will-change:transform;
+}
+.card:hover{
+  transform:translateY(-3px);
+  border-color:var(--pop);
+  box-shadow:0 6px 20px var(--pop-glow);
+}
+.card:active{transform:translateY(-1px)}
+.card-img{position:relative;aspect-ratio:1;overflow:hidden;background:var(--ink3)}
+.card-img img{width:100%;height:100%;object-fit:cover}
+.card-rank{
+  position:absolute;top:0;left:0;
+  background:var(--pop);color:white;
+  font-family:'Space Mono',monospace;font-size:9px;font-weight:700;
+  padding:2px 6px;border-bottom-right-radius:7px;
+}
+.card-ip{
+  position:absolute;top:4px;right:4px;
+  background:rgba(245,197,66,.9);border-radius:50%;
+  padding:2px;display:flex;
+}
+.card-info{padding:6px 8px 7px;text-align:center}
+.card-id{font-size:11.5px;font-weight:700;color:var(--txt);line-height:1.2}
+.card-score{
+  font-family:'Space Mono',monospace;
+  font-size:.85rem;color:var(--teal);
+  line-height:1.2;margin-top:1px;
+  letter-spacing:-.02em;
+}
+/* score tier glows */
+.tier-s{box-shadow:0 0 10px rgba(0,212,184,.25);border-color:rgba(0,212,184,.4)!important}
+.tier-a{box-shadow:0 0 8px rgba(91,82,255,.3);border-color:rgba(91,82,255,.45)!important}
+
+/* ── Empty / loading ── */
+.state-box{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  gap:12px;color:var(--txt2);padding:40px;text-align:center;
+}
+.state-box .big{
+  font-family:'VT323',monospace;
+  font-size:2.2rem;color:var(--txt3);letter-spacing:.06em;
+}
+.spinner{
+  width:34px;height:34px;
+  border:3px solid var(--line);
+  border-top-color:var(--pop);
+  border-radius:50%;
+  animation:spin .7s linear infinite;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ── NFT Modal ── */
+.mbd{
+  position:fixed;inset:0;z-index:200;
+  background:rgba(0,0,0,.82);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;
+  padding:14px;
+}
+.mbox{
+  background:var(--ink2);
+  border:1px solid var(--line2);
+  border-radius:18px;
+  width:100%;max-width:660px;max-height:92vh;
+  display:flex;flex-direction:column;overflow:hidden;
+  position:relative;
+}
+.mclose{
+  position:absolute;top:12px;right:12px;
+  background:var(--ink3);border:1px solid var(--line);
+  border-radius:8px;padding:4px;
+  color:var(--txt2);display:flex;z-index:10;
+  transition:color .1s;
+}
+.mclose:hover{color:var(--txt)}
+.mhero{
+  display:flex;gap:16px;
+  padding:20px 20px 16px;
+  border-bottom:1px solid var(--line);
+  flex-shrink:0;
+}
+.mimg{
+  width:96px;height:96px;border-radius:12px;
+  object-fit:contain;background:var(--ink3);
+  border:1px solid var(--line);flex-shrink:0;
+}
+.mmeta{flex:1;min-width:0}
+.mid{font-family:'VT323',monospace;font-size:2rem;color:var(--txt);line-height:1}
+.mscore{
+  font-family:'Space Mono',monospace;
+  font-size:1.9rem;color:var(--teal);line-height:1;
+  margin:5px 0 3px;
+}
+.mslabel{font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--txt3)}
+.mrank{font-size:11px;color:var(--txt2);margin-top:4px}
+.mtabs{display:flex;border-bottom:1px solid var(--line);flex-shrink:0}
+.mtab{
+  flex:1;padding:10px 8px;
+  background:none;border:none;
+  font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--txt2);cursor:pointer;
+  border-bottom:2px solid transparent;transition:all .1s;
+}
+.mtab.on{color:var(--teal);border-bottom-color:var(--teal)}
+.mbody{flex:1;overflow-y:auto;padding:16px}
+
+/* Traits grid in modal */
+.tgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.tslot{
+  display:flex;align-items:center;gap:9px;
+  padding:8px 10px;
+  background:var(--ink3);
+  border:1px solid var(--line);border-radius:9px;
+  min-height:56px;
+}
+.tslot-img{
+  width:32px;height:32px;border-radius:6px;
+  object-fit:contain;background:var(--ink4);flex-shrink:0;
+}
+.tslot-none{
+  width:32px;height:32px;border-radius:6px;
+  background:var(--ink4);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  color:var(--txt3);
+}
+.tslot-info{flex:1;min-width:0}
+.tslot-cat{font-size:9px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--txt3)}
+.tslot-name{font-size:12px;font-weight:700;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tslot-sup{font-size:10px;color:var(--txt3)}
+.tslot-bonus{font-family:'Space Mono',monospace;font-size:.8rem;color:var(--teal);flex-shrink:0}
+
+/* Score breakdown */
+.stbl{width:100%;border-collapse:collapse}
+.stbl td{padding:7px 4px;font-size:12px;border-bottom:1px solid var(--line);color:var(--txt2)}
+.stbl td:last-child{text-align:right;font-family:'Space Mono',monospace;font-size:.85rem;color:var(--teal)}
+.stbl tr.tot td{color:var(--txt);font-weight:700;border-bottom:none;padding-top:12px}
+.stbl tr.tot td:last-child{font-size:1rem;color:var(--teal)}
+/* Identity bars */
+.id-row{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.id-lbl{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--txt);align-items:center}
+.id-bar{width:100%;height:4px;background:var(--ink4);border-radius:99px;overflow:hidden}
+.id-fill{height:100%;border-radius:99px}
+
+/* ── Mobile filter sheet ── */
+.sheet-bg{
+  position:fixed;inset:0;z-index:100;
+  background:rgba(0,0,0,.65);
+}
+.sheet{
+  position:absolute;bottom:0;left:0;right:0;
+  background:var(--ink2);
+  border-radius:18px 18px 0 0;
+  border-top:1px solid var(--line);
+  max-height:88vh;
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.sheet-handle{
+  width:36px;height:4px;background:var(--line2);
+  border-radius:2px;margin:10px auto 4px;flex-shrink:0;
+}
+.sheet-hd{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:4px 16px 12px;flex-shrink:0;
+}
+.sheet-title{font-size:15px;font-weight:700;color:var(--txt)}
+.sheet-body{flex:1;overflow-y:auto}
+.sheet-ft{
+  padding:12px 16px;
+  border-top:1px solid var(--line);
+  flex-shrink:0;
+}
+.sheet-apply{
+  width:100%;height:44px;
+  background:var(--pop);color:white;
+  border:none;border-radius:10px;
+  font-size:14px;font-weight:700;
+  cursor:pointer;transition:background .1s;
+}
+.sheet-apply:hover{background:#6e66ff}
+
+/* ── Home screen ── */
+.home{
+  flex:1;overflow-y:auto;
+  display:flex;flex-direction:column;
+  align-items:center;
+  padding:48px 16px 80px;
+}
+.home-hero{text-align:center;max-width:460px;width:100%;margin-bottom:44px}
+.home-eyebrow{
+  font-size:10px;font-weight:700;letter-spacing:.22em;
+  text-transform:uppercase;color:var(--txt3);margin-bottom:14px;
+}
+.home-h1{
+  font-family:'VT323',monospace;
+  font-size:clamp(2.4rem,8vw,3.4rem);
+  color:var(--txt);line-height:1.05;margin-bottom:10px;
+}
+.home-h1 span{color:var(--teal)}
+.home-sub{font-size:13px;color:var(--txt2);margin-bottom:26px;line-height:1.5}
+.home-row{display:flex;gap:8px;width:100%}
+.home-inp{
+  flex:1;height:50px;
+  background:var(--ink3);
+  border:2px solid var(--line);
+  border-radius:12px;color:var(--txt);
+  font-family:'Space Mono',monospace;font-size:1.5rem;
+  padding:0 14px;outline:none;text-align:center;
+  transition:border-color .15s,box-shadow .15s;
+}
+.home-inp::placeholder{color:var(--txt3)}
+.home-inp:focus{border-color:var(--pop);box-shadow:0 0 0 3px var(--pop-glow)}
+.home-go{
+  height:50px;padding:0 20px;
+  background:var(--pop);color:white;
+  border:none;border-radius:12px;
+  font-family:'VT323',monospace;font-size:1.25rem;
+  letter-spacing:.1em;cursor:pointer;flex-shrink:0;
+  transition:background .1s;
+}
+.home-go:hover{background:#6e66ff}
+
+/* quick result */
+.qres{
+  margin-top:14px;width:100%;
+  background:var(--ink3);border:1.5px solid var(--line);
+  border-radius:13px;padding:13px 15px;
+  display:flex;align-items:center;gap:13px;
+  cursor:pointer;transition:border-color .12s;
+}
+.qres:hover{border-color:var(--pop)}
+.qres-img{
+  width:58px;height:58px;border-radius:10px;
+  object-fit:cover;background:var(--ink4);flex-shrink:0;
+}
+.qres-score{font-family:'Space Mono',monospace;font-size:1.7rem;color:var(--teal);line-height:1}
+.qres-lbl{font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--txt3)}
+.qres-hint{font-size:11px;color:var(--txt2);margin-top:2px}
+
+/* Browse sections */
+.browse{width:100%;max-width:720px}
+.browse+.browse{margin-top:28px}
+.browse-lbl{
+  font-size:10px;font-weight:700;letter-spacing:.18em;
+  text-transform:uppercase;color:var(--txt3);
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:10px;
+}
+.browse-lbl::after{content:'';flex:1;height:1px;background:var(--line)}
+.fam-browse{display:flex;flex-wrap:wrap;gap:6px}
+.fam-bchip{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 11px;border-radius:999px;
+  background:var(--ink3);border:1.5px solid var(--line);
+  color:var(--txt);font-size:12px;font-weight:600;
+  cursor:pointer;transition:all .1s;
+}
+.fam-bchip:hover{border-color:var(--pop);background:var(--pop-soft)}
+.cat-browse{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.cat-bchip{
+  padding:11px 10px;
+  background:var(--ink3);border:1.5px solid var(--line);
+  border-radius:10px;text-align:center;
+  font-size:12.5px;font-weight:700;color:var(--txt);
+  cursor:pointer;transition:all .1s;
+}
+.cat-bchip:hover{border-color:var(--pop);background:var(--pop-soft)}
+.enc-chip{
+  grid-column:span 3;
+  padding:12px;
+  background:rgba(91,82,255,.08);
+  border:1.5px solid var(--pop);
+  border-radius:10px;text-align:center;
+  font-size:13px;font-weight:700;color:var(--txt);
+  cursor:pointer;transition:all .1s;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+}
+.enc-chip:hover{background:var(--pop-soft)}
+
+/* ── Encyclopedia ── */
+.enc-wrap{padding:14px}
+.enc-cat{
+  font-family:'VT323',monospace;
+  font-size:1.3rem;color:var(--txt);letter-spacing:.07em;
+  padding:6px 0 5px;
+  border-bottom:1px solid var(--line);
+  margin-bottom:9px;margin-top:22px;
+}
+.enc-cat:first-child{margin-top:0}
+.enc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:7px}
+.enc-card{
+  display:flex;background:var(--ink3);
+  border:1px solid var(--line);border-radius:9px;
+  overflow:hidden;cursor:pointer;transition:border-color .1s;
+  min-height:64px;
+}
+.enc-card:hover{border-color:var(--pop)}
+.enc-twr{
+  width:64px;flex-shrink:0;background:var(--ink4);
+  display:flex;align-items:center;justify-content:center;
+  border-right:1px solid var(--line);
+}
+.enc-img{width:44px;height:44px;object-fit:contain}
+.enc-info{flex:1;padding:8px 10px;display:flex;flex-direction:column;justify-content:space-between;min-width:0;overflow:hidden}
+.enc-name{font-size:12px;font-weight:700;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.enc-ti{font-size:11px;color:var(--txt2);font-style:italic;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.enc-sup{font-family:'Space Mono',monospace;font-size:.78rem;color:var(--txt3)}
+
+/* ── Wallet section ── */
+.wallet-sec{border-bottom:1px solid var(--line)}
+.wallet-body{padding:10px 14px 14px}
+.wallet-input-row{display:flex;gap:6px;margin-bottom:8px}
+.wallet-inp{
+  flex:1;height:32px;min-width:0;
+  background:var(--ink);border:1.5px solid var(--line);
+  border-radius:7px;color:var(--txt);font-size:11px;
+  padding:0 8px;outline:none;font-family:'Space Mono',monospace;
+  transition:border-color .15s;
+}
+.wallet-inp::placeholder{color:var(--txt3);font-family:'DM Sans',sans-serif;font-size:11.5px}
+.wallet-inp:focus{border-color:var(--pop)}
+.wallet-fetch-btn{
+  height:32px;padding:0 10px;flex-shrink:0;
+  background:var(--pop);color:white;
+  border:none;border-radius:7px;
+  font-size:11.5px;font-weight:700;
+  cursor:pointer;transition:background .1s;white-space:nowrap;
+}
+.wallet-fetch-btn:hover{background:#6e66ff}
+.wallet-fetch-btn:disabled{background:var(--ink4);color:var(--txt3);cursor:not-allowed}
+.wallet-status{
+  font-size:11px;color:var(--txt3);
+  display:flex;align-items:center;gap:5px;
+  margin-bottom:6px;
+}
+.wallet-status.ok{color:var(--green)}
+.wallet-status.err{color:var(--red)}
+.wallet-status .mini-spin{
+  width:11px;height:11px;border:1.5px solid var(--line2);
+  border-top-color:var(--pop);border-radius:50%;
+  animation:spin .6s linear infinite;flex-shrink:0;
+}
+.wallet-toggle-row{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-top:4px;
+}
+.wallet-toggle-label{font-size:12px;font-weight:600;color:var(--txt2)}
+.toggle-switch{
+  position:relative;width:34px;height:18px;flex-shrink:0;cursor:pointer;
+}
+.toggle-switch input{opacity:0;width:0;height:0;position:absolute}
+.toggle-track{
+  position:absolute;inset:0;background:var(--ink4);
+  border-radius:999px;border:1.5px solid var(--line2);
+  transition:background .15s,border-color .15s;
+}
+.toggle-switch input:checked~.toggle-track{background:var(--pop);border-color:var(--pop)}
+.toggle-knob{
+  position:absolute;top:2px;left:2px;
+  width:10px;height:10px;background:var(--txt3);
+  border-radius:50%;transition:transform .15s,background .15s;
+}
+.toggle-switch input:checked~.toggle-knob{transform:translateX(16px);background:white}
+
+/* ── Portfolio calculator ── */
+.calc-sec{border-bottom:1px solid var(--line)}
+.calc-body{padding:10px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.calc-field{}
+.calc-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);margin-bottom:4px}
+.calc-inp-row{display:flex;align-items:center;gap:5px}
+.calc-prefix{font-size:12px;font-weight:700;color:var(--txt2);flex-shrink:0}
+.calc-inp{
+  flex:1;height:32px;min-width:0;
+  background:var(--ink);border:1.5px solid var(--line);
+  border-radius:7px;color:var(--txt);
+  font-size:13px;font-family:'Space Mono',monospace;
+  padding:0 8px;outline:none;
+  transition:border-color .15s;
+}
+.calc-inp:focus{border-color:var(--pop)}
+.calc-inp::placeholder{color:var(--txt3)}
+.calc-results{
+  background:var(--ink);border:1px solid var(--line);
+  border-radius:9px;padding:10px 12px;
+  margin-top:2px;
+}
+.calc-row{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:4px 0;border-bottom:1px solid var(--line);font-size:12px;
+}
+.calc-row:last-child{border-bottom:none;padding-top:8px;margin-top:2px}
+.calc-row-lbl{color:var(--txt2)}
+.calc-row-val{font-family:'Space Mono',monospace;font-size:.82rem;color:var(--teal);text-align:right}
+.calc-row-val.gold{color:var(--gold)}
+.calc-row-val.green{color:var(--green)}
+.calc-row-val.big{font-size:1rem;color:var(--teal)}
+.calc-range-row{
+  display:flex;gap:4px;align-items:center;margin-top:6px;
+}
+.calc-range-item{flex:1;text-align:center;background:var(--ink3);border-radius:7px;padding:5px 4px}
+.calc-range-item .rv{font-family:'Space Mono',monospace;font-size:.78rem;color:var(--teal)}
+.calc-range-item .rl{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);margin-top:2px}
+.calc-range-mid .rv{color:var(--gold)}
+.calc-range-hi .rv{color:var(--green)}
+.calc-no-wallet{
+  font-size:11px;color:var(--txt3);
+  text-align:center;padding:8px 0 4px;
+  line-height:1.5;
+}
+
+/* ── Responsive ── */
+@media(max-width:600px){
+  .sidebar{display:none}
+  .nft-grid{grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:7px}
+  .tgrid{grid-template-columns:1fr}
+  .cat-browse{grid-template-columns:repeat(2,1fr)}
+  .enc-chip{grid-column:span 2}
+  .desktop-only{display:none!important}
+}
+@media(min-width:601px){
+  .mobile-only{display:none!important}
+}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const {useState,useEffect,useMemo,useRef,useCallback,useDeferredValue,useTransition,startTransition} = React;
+
+/* ════════════════════════════════════
+   CONSTANTS
+════════════════════════════════════ */
+const BASE    = 'https://raw.githubusercontent.com/hemibroscommunity-del/Hemi-Bros-catalogue/main';
+const CDN     = 'https://cdn.jsdelivr.net/gh/hemibroscommunity-del/Hemi-Bros-catalogue@main';
+const NFT_U   = `${BASE}/Hemi%20Bro%20spreadsheet-CleanDataWithImages.csv`;
+const SUP_U   = `${BASE}/Hemi%20Bro%20spreadsheet-SupplyCount.csv`;
+const TAGS_U  = `${BASE}/Hemi_Bros_V14_Worksheet%20-%20Trait%20Scoring.csv`;
+const SCR_U   = `${BASE}/Hemi_Bros_V14_Worksheet%20-%20All%20NFT%20scores.csv`;
+
+const CATS = ['Bro Type','Headwear','Clothes','Eyes','Eyewear','Mouth Items'];
+
+const FAM_COLORS = {
+  Brand:'#fca5a5',Prestige:'#fde047',Villainous:'#86efac',Enforcer:'#93c5fd',
+  Fantasy:'#6ee7b7','Sci-fi':'#67e8f9',Whimsical:'#fbcfe8',Heritage:'#fdba74',
+  Drip:'#f472b6',Urban:'#9ca3af',Meme:'#bef264',Minimalist:'#e2e8f0',
+  Scene:'#d8b4fe',Hemi:'#fdba74',Zombie:'#bef264',Alien:'#c4b5fd',
+  Robot:'#67e8f9',Gold:'#fde047',Demon:'#fca5a5',Angel:'#93c5fd',
+  Cyborg:'#a5b4fc',Ape:'#d7ccc8',Human:'#f9a8d4',Skeleton:'#d1d5db',
+  default:'#cbd5e1'
+};
+
+/* ════════════════════════════════════
+   UTILS
+════════════════════════════════════ */
+const tk  = (cat,name) => !name?null:`${cat.trim().toLowerCase()}:${name.trim().toLowerCase()}`;
+const isIp= v => !!v && ['yes','y','true','1'].includes(String(v).trim().toLowerCase());
+
+// Simple debounce hook
+const useDebounce = (value, ms) => {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return debounced;
+};
+
+const normCat = c => {
+  const l = c.trim().toLowerCase();
+  if(l==='head'||l==='hats') return 'Headwear';
+  if(l==='face'||l==='glasses') return 'Eyewear';
+  if(l==='mouth') return 'Mouth Items';
+  if(l==='torso'||l==='clothing'||l==='shirt') return 'Clothes';
+  if(l==='base'||l==='body') return 'Bro Type';
+  return c.trim();
+};
+
+const thumbUrl = (cat,file,name) => {
+  const f = file ? (file.trim().match(/\.[a-z]+$/i)?file.trim():file.trim()+'.png') : null;
+  if(f) return `${CDN}/${encodeURIComponent(cat)}/${encodeURIComponent(f)}`;
+  if(name) return `${CDN}/${encodeURIComponent(cat)}/${encodeURIComponent(name)}.png`;
+  return null;
+};
+
+const fmtScore = nft => {
+  const dm = nft.displayMultiple;
+  if(dm!=null){
+    const s = String(dm).trim();
+    if(!s||s==='null') return nft.diScore.toFixed(1);
+    if(isNaN(Number(s.replace(/,/g,'')))) return s; // "10x - 30x" range
+    const n = parseFloat(s.replace(/,/g,''));
+    if(!isNaN(n)) return Number.isInteger(n)?`${n}x`:`${n.toFixed(2)}x`;
+  }
+  return nft.diScore.toFixed(1);
+};
+
+/* ════════════════════════════════════
+   DATA LOAD
+════════════════════════════════════ */
+async function loadData(){
+  const txt = url => fetch(url).then(r=>{if(!r.ok)throw new Error(url);return r.text();});
+  const [nftTxt,supTxt,tagsTxt,scrTxt] = await Promise.all([txt(NFT_U),txt(SUP_U),txt(TAGS_U),txt(SCR_U)]);
+  const traitMap={}, scoresMap={};
+
+  // --- scores ---
+  Papa.parse(scrTxt,{header:true,dynamicTyping:true,skipEmptyLines:true,complete:r=>{
+    r.data.forEach(row=>{
+      if(!row.ID) return;
+      let dm = row['Display Multiple']??row['Display_Multiple']??null;
+      if(typeof dm==='string'){
+        const s=dm.trim(), n=parseFloat(s.replace(/,/g,''));
+        dm = (!isNaN(n)&&String(n)===s.replace(/,/g,'')) ? n : s;
+      }
+      scoresMap[row.ID]={diScore:row['DI Score']||row['DI_Score']||0, displayMultiple:dm};
+    });
+  }});
+
+  // --- supply / trait master ---
+  await new Promise(res=>Papa.parse(supTxt,{header:true,skipEmptyLines:true,complete:r=>{
+    r.data.forEach(d=>{
+      const keys=Object.keys(d);
+      const catRaw = d.Category||d[keys.find(k=>k.trim().toLowerCase()==='category')];
+      const item   = d['Unique Item List']||d[keys.find(k=>['unique item list','item name','trait','item'].includes(k.trim().toLowerCase()))];
+      if(!catRaw||!item) return;
+      const cat  = normCat(catRaw);
+      const name = item.split('(')[0].trim();
+      const key  = tk(cat,name);
+      if(!key) return;
+      const supply   = d.Count||d.Supply||d.Quantity||d.Qty||d[keys.find(k=>['count','supply','quantity','qty'].includes(k.trim().toLowerCase()))];
+      const thumbFile= d.IconName||d.ThumbFilename||d.Image||d.Filename;
+      const ipRisk   = d['IP Concern']||d['IP Risk']||d[keys.find(k=>k.toLowerCase().includes('ip risk')||k.toLowerCase().includes('ip concern'))];
+      traitMap[key]  = {...d,Category:cat,'Unique Item List':name,
+        Supply:supply!=null?String(supply):'',
+        'IP Risk':ipRisk,
+        thumbnailUrl:thumbUrl(cat,thumbFile,name),
+        tags:{},adjustedScore:0};
+    });
+    res();
+  }}));
+
+  // --- tags + adj scores ---
+  await new Promise(res=>Papa.parse(tagsTxt,{header:true,dynamicTyping:true,skipEmptyLines:true,complete:r=>{
+    r.data.forEach(d=>{
+      const keys=Object.keys(d);
+      const catRaw=d.Category||d[keys.find(k=>k.trim().toLowerCase()==='category')];
+      const item=d['Unique Item List']||d[keys.find(k=>['unique item list','item name','trait','item'].includes(k.trim().toLowerCase()))];
+      if(!catRaw||!item) return;
+      const cat=normCat(catRaw), name=item.split('(')[0].trim(), key=tk(cat,name);
+      if(!key) return;
+      if(!traitMap[key]) traitMap[key]={Category:cat,'Unique Item List':name,Supply:'',tags:{},adjustedScore:0};
+      const tags={};
+      for(let i=1;i<=10;i++){
+        const th=keys.find(k=>k.trim().toLowerCase().replace(/[^a-z0-9]/g,'')=== `tag${i}`);
+        const sh=keys.find(k=>{const n=k.trim().toLowerCase().replace(/[^a-z0-9]/g,'');return n===`is${i}`||n===`score${i}`;});
+        if(!th) continue;
+        const tn=d[th]; if(!tn||typeof tn!=='string'||!tn.trim()||tn.toLowerCase()==='none') continue;
+        if(tn.trim().toLowerCase()==='minimalist') continue;
+        let sc=sh?(typeof d[sh]==='number'?d[sh]:parseFloat(d[sh])||0):0;
+        if(isNaN(sc)) sc=0;
+        tags[tn.trim()]=sc;
+      }
+      traitMap[key].tags=tags;
+      const ak=keys.find(k=>['adjusted score','adjustedscore','calculated is','item score'].includes(k.trim().toLowerCase()));
+      if(ak){const v=d[ak],sc=typeof v==='number'?v:parseFloat(String(v).replace(/,/g,''));if(!isNaN(sc))traitMap[key].adjustedScore=sc;}
+    });
+    res();
+  }}));
+
+  // --- NFTs ---
+  const nfts = await new Promise((res,rej)=>Papa.parse(nftTxt,{
+    header:true,dynamicTyping:true,skipEmptyLines:true,
+    complete:r=>{
+      const tmp=r.data.filter(n=>n.ID).map(n=>{
+        const e={...n,hasIpRisk:false};
+        const nk=Object.keys(n);
+        const famSc={};
+        CATS.forEach(cat=>{
+          let key=cat;
+          if(n[key]===undefined) key=nk.find(x=>x.trim().toLowerCase()===cat.toLowerCase())||key;
+          if(n[key]===undefined){
+            if(cat==='Headwear') key=nk.find(x=>x.trim().toLowerCase()==='head')||key;
+            if(cat==='Bro Type') key=nk.find(x=>['body','base'].includes(x.trim().toLowerCase()))||key;
+            if(cat==='Clothes') key=nk.find(x=>['torso','clothing'].includes(x.trim().toLowerCase()))||key;
+            if(cat==='Eyewear') key=nk.find(x=>['face','glasses'].includes(x.trim().toLowerCase()))||key;
+            if(cat==='Mouth Items') key=nk.find(x=>x.trim().toLowerCase()==='mouth')||key;
+          }
+          const val=n[key]; if(!val) return;
+          const name=String(val).split('(')[0].trim();
+          const tkey=tk(cat,name);
+          const detail=tkey?traitMap[tkey]:null;
+          if(detail){
+            e[cat]=`${name} (${detail.Supply||'?'})`;
+            if(isIp(detail['IP Risk'])) e.hasIpRisk=true;
+            if(detail.tags) Object.entries(detail.tags).forEach(([t,s])=>{
+              famSc[t]=(famSc[t]||0)+(typeof s==='number'?s:parseFloat(s)||0);
+            });
+          } else { e[cat]=name; }
+        });
+        const maxS=Math.max(0,...Object.values(famSc));
+        e.dominantFamilies=maxS>0?Object.entries(famSc).filter(([,s])=>s===maxS).map(([f])=>f):['None'];
+        const sd=scoresMap[n.ID];
+        e.diScore=sd?.diScore||0;
+        e.displayMultiple=sd?.displayMultiple??null;
+        return e;
+      });
+      tmp.sort((a,b)=>b.diScore-a.diScore);
+      tmp.forEach((nft,i)=>{
+        nft.rank=i+1;
+        nft.idStr=String(nft.ID);             // pre-stringify for fast search
+        nft.famSet=new Set(nft.dominantFamilies); // pre-build Set for fast family lookup
+      });
+      res(tmp);
+    },
+    error:err=>rej(new Error(err.message))
+  }));
+  return {nfts,traitMap};
+}
+
+/* ════════════════════════════════════
+   SVG ICONS (inline, tiny)
+════════════════════════════════════ */
+const I = {
+  search: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+  x:      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  filter: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>,
+  chev:   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>,
+  sidebar:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/></svg>,
+  book:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>,
+  warn:   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#78350f" strokeWidth="2.5" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+  none:   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>,
+  check:  <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><polyline points="1.5,6 4.5,9.5 10.5,2"/></svg>,
+  wallet: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 12V8a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2v-4"/><path d="M18 12h.01"/><circle cx="18" cy="12" r="2"/></svg>,
+  calc:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>,
+};
+
+/* ════════════════════════════════════
+   WALLET FETCH — auto-paginate all pages
+════════════════════════════════════ */
+const CONTRACT = '0xEAB71F90235E6b885C05aFFF3BAF0E41244cf874';
+const EXPLORER = 'https://explorer.hemi.xyz';
+
+async function fetchWalletNFTs(walletAddress, onProgress) {
+  const ids = new Set();
+  let pageParams = null;
+  let pageNum = 0;
+
+  while (true) {
+    pageNum++;
+    let url = `${EXPLORER}/api/v2/tokens/${CONTRACT}/instances?holder_address_hash=${walletAddress}&page_size=50`;
+    if (pageParams) url += `&${new URLSearchParams(pageParams).toString()}`;
+
+    onProgress(`Fetching page ${pageNum}…`);
+    const res = await fetch(url);
+    if (!res.ok) {
+      // Try alternate Blockscout API path
+      const alt = `${EXPLORER}/api/v2/tokens/${CONTRACT}/token-holders?page_size=50`;
+      throw new Error(`Explorer API returned ${res.status}. Check wallet address.`);
+    }
+    const json = await res.json();
+
+    // Extract token IDs from items array
+    const items = json.items || json.data || [];
+    items.forEach(item => {
+      const id = item.id ?? item.token_id ?? item.metadata?.id;
+      if (id != null) ids.add(String(id));
+    });
+
+    // Blockscout pagination: next_page_params object
+    const next = json.next_page_params;
+    if (!next || Object.keys(next).length === 0 || items.length === 0) break;
+    pageParams = next;
+
+    // Safety cap — shouldn't need >200 pages for a collection this size
+    if (pageNum >= 200) break;
+  }
+
+  return [...ids];
+}
+
+/* ════════════════════════════════════
+   VIRTUAL GRID
+   Only renders rows visible in the viewport
+   + a buffer above/below. Eliminates DOM
+   nodes for all off-screen cards.
+════════════════════════════════════ */
+const CARD_MIN = 104;   // minmax(104px, 1fr)
+const CARD_H   = 155;   // approximate card height px (img + info)
+const BUFFER   = 3;     // extra rows to render above/below viewport
+
+const VirtualGrid = ({items, onCardClick}) => {
+  const containerRef = useRef(null);
+  const [scrollTop, setScrollTop] = useState(0);
+  const [containerW, setContainerW] = useState(0);
+  const [containerH, setContainerH] = useState(600);
+
+  // Observe size changes
+  useEffect(()=>{
+    const el = containerRef.current;
+    if(!el) return;
+    const ro = new ResizeObserver(entries=>{
+      const {width,height} = entries[0].contentRect;
+      setContainerW(w => Math.abs(w-width)>2 ? width : w);
+      setContainerH(h => Math.abs(h-height)>2 ? height : h);
+    });
+    ro.observe(el);
+    return ()=>ro.disconnect();
+  },[]);
+
+  const handleScroll = useCallback(e=>{
+    setScrollTop(e.currentTarget.scrollTop);
+  },[]);
+
+  // How many columns fit given container width
+  const cols = containerW > 0 ? Math.max(1, Math.floor(containerW / CARD_MIN)) : 4;
+
+  // Actual card height adjusts based on cols (wider = taller cards somewhat, but keep simple)
+  const rowH   = CARD_H + 9;   // gap
+  const rowCount = Math.ceil(items.length / cols);
+  const totalH   = rowCount * rowH;
+
+  const firstRow = Math.max(0, Math.floor(scrollTop / rowH) - BUFFER);
+  const lastRow  = Math.min(rowCount - 1, Math.ceil((scrollTop + containerH) / rowH) + BUFFER);
+
+  const visibleItems = [];
+  for(let r = firstRow; r <= lastRow; r++){
+    for(let c = 0; c < cols; c++){
+      const idx = r * cols + c;
+      if(idx < items.length) visibleItems.push({item: items[idx], idx});
+    }
+  }
+
+  const paddingTop    = firstRow * rowH;
+  const paddingBottom = Math.max(0, (rowCount - lastRow - 1)) * rowH;
+
+  return (
+    <div
+      ref={containerRef}
+      className="grid-scroll"
+      onScroll={handleScroll}
+    >
+      <div style={{
+        display:'grid',
+        gridTemplateColumns:`repeat(${cols}, 1fr)`,
+        gap:'9px',
+        paddingTop: paddingTop,
+        paddingBottom: paddingBottom,
+      }}>
+        {visibleItems.map(({item,idx})=>(
+          <Card key={item.ID} nft={item} onClick={onCardClick}/>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* ════════════════════════════════════
+   NFT CARD
+════════════════════════════════════ */
+const Card = React.memo(({nft,onClick})=>{
+  const sc=nft.diScore;
+  const glow = sc>=175?'tier-s':sc>=110?'tier-a':'';
+  const handleClick = useCallback(()=>onClick(nft),[nft,onClick]);
+  return(
+    <div className={`card ${glow}`} onClick={handleClick}>
+      <div className="card-img">
+        {nft.rank<=100 && <div className="card-rank">#{nft.rank}</div>}
+        {nft.hasIpRisk && <div className="card-ip">{I.warn}</div>}
+        <img src={nft.Image} alt={`#${nft.ID}`} loading="lazy" decoding="async"/>
+      </div>
+      <div className="card-info">
+        <div className="card-id">#{nft.ID}</div>
+        <div className="card-score">{fmtScore(nft)}</div>
+      </div>
+    </div>
+  );
+});
+
+/* ════════════════════════════════════
+   NFT MODAL
+════════════════════════════════════ */
+const Modal = ({nft,traitMap,onClose})=>{
+  const [tab,setTab]=useState('traits');
+  useEffect(()=>setTab('traits'),[nft?.ID]);
+  if(!nft) return null;
+
+  const slots=[{cat:'Bro Type',label:'Bro Type'},{cat:'Headwear',label:'Head'},{cat:'Eyes',label:'Eyes'},{cat:'Eyewear',label:'Eyewear'},{cat:'Clothes',label:'Clothes'},{cat:'Mouth Items',label:'Mouth'}];
+  const slotData=[];const famTot={};const scoreItems=[];let famSum=0;
+  slots.forEach(({cat,label})=>{
+    const val=nft[cat];
+    if(!val||typeof val!=='string'){slotData.push({label,d:null});return;}
+    const name=val.split(' (')[0].trim();
+    const key=tk(cat,name);
+    const detail=key?traitMap[key]:null;
+    const match=val.match(/\((\d+)\)/);
+    const supply=match?parseInt(match[1]):(parseInt(detail?.Supply)||0);
+    const bonus=detail?.adjustedScore||0;
+    if(detail?.tags) Object.entries(detail.tags).forEach(([t,s])=>{
+      const sc=typeof s==='number'?s:parseFloat(s)||0;
+      famTot[t]=(famTot[t]||0)+sc; famSum+=sc;
+    });
+    if(bonus>0) scoreItems.push({name,cat,bonus});
+    slotData.push({label,d:{name,detail,supply,bonus}});
+  });
+  scoreItems.sort((a,b)=>b.bonus-a.bonus);
+  const famSorted=Object.entries(famTot).map(([n,s])=>({name:n,score:s,pct:famSum>0?s/famSum*100:0})).sort((a,b)=>b.score-a.score);
+
+  return(
+    <div className="mbd" onClick={onClose}>
+      <div className="mbox" onClick={e=>e.stopPropagation()}>
+        <button className="mclose" onClick={onClose}>{I.x}</button>
+        <div className="mhero">
+          <img className="mimg" src={nft.Image} alt={`#${nft.ID}`}/>
+          <div className="mmeta">
+            <div className="mid">#{nft.ID}</div>
+            <div className="mscore">{fmtScore(nft)}</div>
+            <div className="mslabel">Score</div>
+            <div className="mrank">Rank #{nft.rank} · DI {nft.diScore.toFixed(1)}</div>
+          </div>
+        </div>
+        <div className="mtabs">
+          {[['traits','Traits'],['score','Breakdown'],['family','Family']].map(([k,l])=>(
+            <button key={k} className={`mtab ${tab===k?'on':''}`} onClick={()=>setTab(k)}>{l}</button>
+          ))}
+        </div>
+        <div className="mbody">
+          {tab==='traits'&&(
+            <div className="tgrid">
+              {slotData.map(({label,d})=>(
+                <div className="tslot" key={label} style={{opacity:d?1:0.35}}>
+                  {d?.detail?.thumbnailUrl&&d.name.toLowerCase()!=='none'
+                    ?<img className="tslot-img" src={d.detail.thumbnailUrl} alt={d.name}/>
+                    :<div className="tslot-none" style={{color:'var(--txt3)'}}>{I.none}</div>}
+                  <div className="tslot-info">
+                    <div className="tslot-cat">{label}</div>
+                    <div className="tslot-name">{d?.name||'—'}</div>
+                    {d&&<div className="tslot-sup">×{d.supply||'?'}</div>}
+                  </div>
+                  {d?.bonus>0&&<div className="tslot-bonus">+{d.bonus.toFixed(1)}</div>}
+                </div>
+              ))}
+            </div>
+          )}
+          {tab==='score'&&(
+            scoreItems.length>0
+              ?<table className="stbl"><tbody>
+                {scoreItems.map((item,i)=><tr key={i}><td style={{color:'var(--txt)'}}>{item.name}</td><td style={{color:'var(--txt3)',fontSize:11}}>{item.cat}</td><td>+{item.bonus.toFixed(1)}</td></tr>)}
+                <tr className="tot"><td colSpan={2}>Total Score</td><td>{fmtScore(nft)}</td></tr>
+              </tbody></table>
+              :<p style={{color:'var(--txt2)',fontSize:13,padding:'18px 0'}}>No breakdown available.</p>
+          )}
+          {tab==='family'&&(
+            famSorted.length>0
+              ?<div>{famSorted.map(({name,pct})=>(
+                <div className="id-row" key={name}>
+                  <div className="id-lbl">
+                    <span style={{display:'flex',alignItems:'center',gap:6}}>
+                      <span style={{width:8,height:8,borderRadius:'50%',background:FAM_COLORS[name]||FAM_COLORS.default,display:'inline-block',flexShrink:0}}></span>
+                      {name}
+                    </span>
+                    <span style={{fontFamily:'Space Mono,monospace',fontSize:'.8rem',color:'var(--txt3)'}}>{pct.toFixed(0)}%</span>
+                  </div>
+                  <div className="id-bar"><div className="id-fill" style={{width:`${pct}%`,background:FAM_COLORS[name]||FAM_COLORS.default}}></div></div>
+                </div>
+              ))}</div>
+              :<p style={{color:'var(--txt2)',fontSize:13,padding:'18px 0'}}>No family data.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ════════════════════════════════════
+   FILTER PANEL CONTENT (shared desktop/mobile)
+════════════════════════════════════ */
+const FilterContent=({filters,setFilters,traitOpts,traitMap,facetedCounts,famCounts})=>{
+  const [open,setOpen]=useState({});
+  const toggleOpen=cat=>setOpen(p=>({...p,[cat]:!p[cat]}));
+
+  const setTrait=(cat,val)=>setFilters(f=>{
+    const t={...f.traits};
+    if(t[cat]===val) delete t[cat]; else t[cat]=val;
+    return {...f,traits:t};
+  });
+  const setFam=fam=>setFilters(f=>{
+    const fs=f.families.includes(fam)?f.families.filter(x=>x!==fam):[...f.families,fam];
+    return {...f,families:fs};
+  });
+
+  const families=Object.keys(FAM_COLORS).filter(f=>f!=='default').sort().filter(f=>(famCounts[f]||0)>0);
+
+  return(
+    <>
+      {/* Family */}
+      <div className="acc-sec">
+        <button className="acc-hd" onClick={()=>toggleOpen('_fam')}>
+          Family
+          {filters.families.length>0&&<span className="sel-badge">{filters.families.length}</span>}
+          <span className={`chev ${open['_fam']?'open':''}`}>{I.chev}</span>
+        </button>
+        {open['_fam']&&(
+          <div className="fam-grid">
+            {families.map(f=>(
+              <button key={f} className={`fam-c ${filters.families.includes(f)?'sel':''}`} onClick={()=>setFam(f)}>
+                <span className="fam-dot" style={{background:FAM_COLORS[f]}}></span>
+                {f}
+                <span style={{fontSize:10,color:'var(--txt3)',marginLeft:2}}>{famCounts[f]||0}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Trait cats */}
+      {CATS.map(cat=>{
+        const opts=traitOpts[cat]||[];
+        const sel=filters.traits[cat];
+        const counts=facetedCounts[cat]||{};
+        return(
+          <div className="acc-sec" key={cat}>
+            <button className="acc-hd" onClick={()=>toggleOpen(cat)}>
+              {cat}
+              {sel&&<span className="sel-badge">1</span>}
+              <span className={`chev ${open[cat]?'open':''}`}>{I.chev}</span>
+            </button>
+            {open[cat]&&(
+              <div className="acc-body">
+                {opts.map(opt=>{
+                  const name=opt.split(' (')[0];
+                  const key=tk(cat,name);
+                  const detail=key?traitMap[key]:null;
+                  const cnt=counts[opt]||0;
+                  const isSel=sel===opt;
+                  if(cnt===0&&!isSel) return null;
+                  return(
+                    <button key={opt} className={`topt ${isSel?'sel':''}`} onClick={()=>setTrait(cat,opt)}>
+                      <div className="chkbox">{isSel&&I.check}</div>
+                      {detail?.thumbnailUrl&&name.toLowerCase()!=='none'
+                        ?<img className="tthumb" src={detail.thumbnailUrl} alt={name}/>
+                        :<div className="tthumb" style={{display:'flex',alignItems:'center',justifyContent:'center',color:'var(--txt3)'}}>{I.none}</div>}
+                      <span className="tname">{name}</span>
+                      <span className="tcnt">{cnt}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </>
+  );
+};
+
+/* ════════════════════════════════════
+   WALLET SECTION
+════════════════════════════════════ */
+const WalletSection = ({ownedIds, setOwnedIds, walletFilter, setWalletFilter}) => {
+  const [open, setOpen]       = useState(false);
+  const [addr, setAddr]       = useState('');
+  const [status, setStatus]   = useState(null); // null | {type:'loading'|'ok'|'err', msg}
+  const inputRef              = useRef(null);
+
+  const fetch_ = async () => {
+    const a = addr.trim();
+    if (!a) return;
+    if (!/^0x[0-9a-fA-F]{40}$/.test(a)) {
+      setStatus({type:'err', msg:'Invalid address format'});
+      return;
+    }
+    setStatus({type:'loading', msg:'Connecting…'});
+    try {
+      const ids = await fetchWalletNFTs(a, msg => setStatus({type:'loading', msg}));
+      if (ids.length === 0) {
+        setStatus({type:'err', msg:'No Hemi Bros found for this address'});
+        setOwnedIds([]);
+      } else {
+        setStatus({type:'ok', msg:`Found ${ids.length} Bro${ids.length!==1?'s':''}`});
+        setOwnedIds(ids);
+      }
+    } catch(e) {
+      setStatus({type:'err', msg: e.message});
+      setOwnedIds([]);
+    }
+  };
+
+  const clear = () => {
+    setOwnedIds([]);
+    setWalletFilter(false);
+    setStatus(null);
+    setAddr('');
+  };
+
+  const isLoading = status?.type === 'loading';
+
+  return (
+    <div className="wallet-sec">
+      <button className="acc-hd" onClick={() => setOpen(p=>!p)}>
+        {I.wallet} My Wallet
+        {ownedIds.length > 0 && <span className="sel-badge">{ownedIds.length}</span>}
+        <span className={`chev ${open?'open':''}`}>{I.chev}</span>
+      </button>
+      {open && (
+        <div className="wallet-body">
+          <div className="wallet-input-row">
+            <input
+              ref={inputRef}
+              className="wallet-inp"
+              placeholder="Paste wallet address (0x…)"
+              value={addr}
+              onChange={e => setAddr(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && fetch_()}
+              spellCheck={false}
+            />
+            <button className="wallet-fetch-btn" onClick={fetch_} disabled={isLoading || !addr.trim()}>
+              {isLoading ? '…' : 'Load'}
+            </button>
+          </div>
+
+          {status && (
+            <div className={`wallet-status ${status.type === 'ok' ? 'ok' : status.type === 'err' ? 'err' : ''}`}>
+              {status.type === 'loading' && <span className="mini-spin"/>}
+              {status.msg}
+            </div>
+          )}
+
+          {ownedIds.length > 0 && (
+            <div className="wallet-toggle-row">
+              <span className="wallet-toggle-label">Show only my Bros</span>
+              <label className="toggle-switch">
+                <input type="checkbox" checked={walletFilter} onChange={e => setWalletFilter(e.target.checked)}/>
+                <span className="toggle-track"/>
+                <span className="toggle-knob"/>
+              </label>
+            </div>
+          )}
+
+          {ownedIds.length > 0 && (
+            <button
+              onClick={clear}
+              style={{marginTop:8,background:'none',border:'none',color:'var(--red)',fontSize:11,fontWeight:700,cursor:'pointer',padding:0,display:'block'}}
+            >
+              × Clear wallet
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ════════════════════════════════════
+   PORTFOLIO CALCULATOR
+════════════════════════════════════ */
+const PortfolioCalc = ({ownedNfts}) => {
+  const [open, setOpen]     = useState(false);
+  const [floor, setFloor]   = useState('');   // ETH
+  const [ethUsd, setEthUsd] = useState('');   // USD per ETH
+
+  const count = ownedNfts.length;
+  const floorN = parseFloat(floor);
+  const ethN   = parseFloat(ethUsd);
+  const hasFloor = !isNaN(floorN) && floorN > 0;
+  const hasEth   = !isNaN(ethN)   && ethN   > 0;
+
+  // For each owned NFT, estimate its value range based on displayMultiple / diScore
+  // Low  = floor price
+  // High = floor × the high end of their display multiple (or diScore-derived multiple)
+  // Mid  = average of low + high per NFT, summed
+  const stats = useMemo(() => {
+    if (!hasFloor || !count) return null;
+    let totalLow = 0, totalHigh = 0, totalMid = 0;
+    const perBro = ownedNfts.map(nft => {
+      const dm = nft.displayMultiple;
+      let lowMult = 1, highMult = 1;
+      if (dm != null) {
+        const s = String(dm).trim();
+        // Range like "10x - 30x" or "10x-30x"
+        const rangeMatch = s.match(/^([\d.]+)x?\s*[-–]\s*([\d.]+)x?$/i);
+        if (rangeMatch) {
+          lowMult  = parseFloat(rangeMatch[1]) || 1;
+          highMult = parseFloat(rangeMatch[2]) || lowMult;
+        } else {
+          const n = parseFloat(s.replace(/x/gi,'').replace(/,/g,''));
+          if (!isNaN(n) && n > 0) { lowMult = n; highMult = n; }
+        }
+      }
+      // Cap mults reasonably — floor is the absolute minimum
+      if (lowMult < 1) lowMult = 1;
+      if (highMult < lowMult) highMult = lowMult;
+      const low  = floorN * 1;          // floor = lowest estimate for any bro
+      const high = floorN * highMult;
+      const mid  = floorN * ((lowMult + highMult) / 2);
+      totalLow  += low;
+      totalHigh += high;
+      totalMid  += mid;
+      return {nft, low, mid, high, lowMult, highMult};
+    });
+    return {totalLow, totalMid, totalHigh, perBro};
+  }, [ownedNfts, floorN]);
+
+  const fmt  = (eth) => eth >= 0.001 ? `${eth.toFixed(3)} ETH` : `${eth.toFixed(6)} ETH`;
+  const fmtU = (eth) => hasEth ? `$${(eth * ethN).toLocaleString('en-US',{maximumFractionDigits:0})}` : null;
+
+  return (
+    <div className="calc-sec">
+      <button className="acc-hd" onClick={() => setOpen(p=>!p)}>
+        {I.calc} Portfolio Value
+        {count > 0 && <span className="sel-badge">{count}</span>}
+        <span className={`chev ${open?'open':''}`}>{I.chev}</span>
+      </button>
+      {open && (
+        <div className="calc-body">
+          {count === 0 ? (
+            <div className="calc-no-wallet">Load your wallet first to<br/>calculate portfolio value.</div>
+          ) : (
+            <>
+              <div className="calc-field">
+                <div className="calc-label">Floor Price</div>
+                <div className="calc-inp-row">
+                  <span className="calc-prefix">Ξ</span>
+                  <input
+                    className="calc-inp"
+                    placeholder="e.g. 0.05"
+                    value={floor}
+                    onChange={e => setFloor(e.target.value)}
+                    type="number"
+                    min="0"
+                    step="0.001"
+                  />
+                </div>
+              </div>
+
+              <div className="calc-field">
+                <div className="calc-label">ETH Price (USD)</div>
+                <div className="calc-inp-row">
+                  <span className="calc-prefix">$</span>
+                  <input
+                    className="calc-inp"
+                    placeholder="e.g. 3200"
+                    value={ethUsd}
+                    onChange={e => setEthUsd(e.target.value)}
+                    type="number"
+                    min="0"
+                    step="1"
+                  />
+                </div>
+              </div>
+
+              {stats && (
+                <div className="calc-results">
+                  {/* Range bars */}
+                  <div style={{fontSize:10,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'var(--txt3)',marginBottom:6}}>
+                    Portfolio Range ({count} Bros)
+                  </div>
+                  <div className="calc-range-row">
+                    <div className="calc-range-item calc-range-lo">
+                      <div className="rv">{fmt(stats.totalLow)}</div>
+                      {hasEth && <div className="rv" style={{fontSize:'.68rem',color:'var(--txt3)'}}>{fmtU(stats.totalLow)}</div>}
+                      <div className="rl">Floor</div>
+                    </div>
+                    <div style={{color:'var(--txt3)',fontSize:11}}>–</div>
+                    <div className="calc-range-item calc-range-mid">
+                      <div className="rv">{fmt(stats.totalMid)}</div>
+                      {hasEth && <div className="rv" style={{fontSize:'.68rem',color:'var(--txt3)'}}>{fmtU(stats.totalMid)}</div>}
+                      <div className="rl">Mid</div>
+                    </div>
+                    <div style={{color:'var(--txt3)',fontSize:11}}>–</div>
+                    <div className="calc-range-item calc-range-hi">
+                      <div className="rv">{fmt(stats.totalHigh)}</div>
+                      {hasEth && <div className="rv" style={{fontSize:'.68rem',color:'var(--txt3)'}}>{fmtU(stats.totalHigh)}</div>}
+                      <div className="rl">High</div>
+                    </div>
+                  </div>
+
+                  {/* Per-bro breakdown — top 5 by high value */}
+                  {stats.perBro.filter(b=>b.highMult>1).length > 0 && (
+                    <>
+                      <div style={{fontSize:10,fontWeight:700,letterSpacing:'.1em',textTransform:'uppercase',color:'var(--txt3)',marginTop:10,marginBottom:5}}>
+                        Notable Holdings
+                      </div>
+                      {stats.perBro
+                        .filter(b => b.highMult > 1)
+                        .sort((a,b) => b.highMult - a.highMult)
+                        .slice(0, 5)
+                        .map(({nft, low, high, highMult}) => (
+                          <div className="calc-row" key={nft.ID}>
+                            <span className="calc-row-lbl">#{nft.ID}</span>
+                            <span className="calc-row-val">
+                              {fmt(low)}
+                              {highMult > 1 && <span style={{color:'var(--green)'}}> – {fmt(high)}</span>}
+                            </span>
+                          </div>
+                        ))
+                      }
+                    </>
+                  )}
+                </div>
+              )}
+
+              {!hasFloor && (
+                <div className="calc-no-wallet">Enter a floor price to see<br/>your portfolio estimate.</div>
+              )}
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ════════════════════════════════════
+   ENCYCLOPEDIA
+════════════════════════════════════ */
+const Encyclopedia=({traitMap,onPick})=>{
+  const grouped=useMemo(()=>{
+    const g={};
+    CATS.forEach(c=>g[c]=[]);
+    Object.values(traitMap).forEach(t=>{if(t.Category&&g[t.Category]) g[t.Category].push(t);});
+    CATS.forEach(c=>g[c].sort((a,b)=>(parseInt(b.Supply)||0)-(parseInt(a.Supply)||0)));
+    return g;
+  },[traitMap]);
+  return(
+    <div className="enc-wrap">
+      {CATS.map(cat=>{
+        const traits=grouped[cat];if(!traits?.length) return null;
+        return(
+          <div key={cat}>
+            <div className="enc-cat">{cat.toUpperCase()}</div>
+            <div className="enc-grid">
+              {traits.map(t=>(
+                <div className="enc-card" key={t['Unique Item List']} onClick={()=>onPick(t.Category,t['Unique Item List'])}>
+                  <div className="enc-twr">
+                    {t.thumbnailUrl&&t['Unique Item List'].toLowerCase()!=='none'
+                      ?<img className="enc-img" src={t.thumbnailUrl} alt={t['Unique Item List']} loading="lazy"/>
+                      :<span style={{color:'var(--txt3)'}}>{I.none}</span>}
+                  </div>
+                  <div className="enc-info">
+                    <div><div className="enc-name">{t['Unique Item List']}</div>{t.Title&&<div className="enc-ti">"{t.Title}"</div>}</div>
+                    <div className="enc-sup">×{t.Supply||'?'}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+/* ════════════════════════════════════
+   APP
+════════════════════════════════════ */
+const App=()=>{
+  const [data,setData]         = useState(null);
+  const [loading,setLoading]   = useState(true);
+  const [error,setError]       = useState(null);
+  const [view,setView]         = useState('home');   // home | gallery | encyclopedia
+  const [search,setSearch]     = useState('');       // live ID search (gallery)
+  const [homeQ,setHomeQ]       = useState('');       // home big input
+  const [filters,setFilters]   = useState({traits:{},families:[]});
+  const [selected,setSelected] = useState(null);
+  const [sidebar,setSidebar]   = useState(true);     // desktop sidebar
+  const [sheet,setSheet]       = useState(false);    // mobile sheet
+  const [ownedIds,setOwnedIds] = useState([]);       // wallet NFT IDs
+  const [walletFilter,setWalletFilter] = useState(false); // toggle: show only owned
+
+  useEffect(()=>{
+    loadData()
+      .then(d=>{setData(d);setLoading(false);})
+      .catch(e=>{setError(e.message);setLoading(false);});
+  },[]);
+
+  const nfts     = data?.nfts||[];
+  const traitMap = data?.traitMap||{};
+
+  // Debounce search so heavy recomputes don't fire on every keystroke
+  const debouncedSearch = useDebounce(search, 80);
+
+  /* live-filtered results — uses precomputed idStr + famSet */
+  const filtered = useMemo(()=>{
+    if(!nfts.length) return [];
+    const q = debouncedSearch.trim();
+    const ownedSet = walletFilter && ownedIds.length > 0 ? new Set(ownedIds) : null;
+    const famLen   = filters.families.length;
+    const traitEntries = Object.entries(filters.traits);
+    const traitLen = traitEntries.length;
+    return nfts.filter(nft=>{
+      if(ownedSet && !ownedSet.has(nft.idStr)) return false;
+      if(q && !nft.idStr.startsWith(q)) return false;
+      if(famLen > 0) {
+        let ok = false;
+        for(let i=0;i<famLen;i++) if(nft.famSet.has(filters.families[i])){ ok=true; break; }
+        if(!ok) return false;
+      }
+      for(let i=0;i<traitLen;i++){
+        if(nft[traitEntries[i][0]] !== traitEntries[i][1]) return false;
+      }
+      return true;
+    });
+  },[nfts, debouncedSearch, filters, walletFilter, ownedIds]);
+
+  /* trait options — computed once from full nfts array */
+  const traitOpts = useMemo(()=>{
+    const o={};
+    CATS.forEach(cat=>{
+      const s=new Set();
+      nfts.forEach(n=>{const v=n[cat];if(v&&v!=='None') s.add(v);});
+      o[cat]=[...s].sort((a,b)=>a.localeCompare(b));
+    });
+    return o;
+  },[nfts]);
+
+  /* faceted counts — single O(n) pass, uses precomputed fields */
+  const facetedCounts = useMemo(()=>{
+    const fc={};
+    CATS.forEach(cat=>fc[cat]={});
+    const q = debouncedSearch.trim();
+    const famLen = filters.families.length;
+    const traitEntries = Object.entries(filters.traits);
+    nfts.forEach(nft=>{
+      if(q && !nft.idStr.startsWith(q)) return;
+      if(famLen > 0) {
+        let ok=false;
+        for(let i=0;i<famLen;i++) if(nft.famSet.has(filters.families[i])){ ok=true; break; }
+        if(!ok) return;
+      }
+      // For each category, count this nft if it passes all OTHER trait filters
+      CATS.forEach(cat=>{
+        const v=nft[cat]; if(!v||v==='None') return;
+        // Check all trait filters except this category
+        for(let i=0;i<traitEntries.length;i++){
+          const [c,val]=traitEntries[i];
+          if(c!==cat && nft[c]!==val) return;
+        }
+        fc[cat][v]=(fc[cat][v]||0)+1;
+      });
+    });
+    return fc;
+  },[nfts, filters, debouncedSearch]);
+
+  const famCounts = useMemo(()=>{
+    const fc={};
+    nfts.forEach(n=>n.famSet.forEach(f=>{fc[f]=(fc[f]||0)+1;}));
+    return fc;
+  },[nfts]);
+
+  const activeCount = Object.keys(filters.traits).length+filters.families.length+(walletFilter?1:0);
+  const totalActive = activeCount+(search?1:0);
+
+  // Owned NFTs matched to our data (for portfolio calculator)
+  const ownedNfts = useMemo(()=>{
+    if(!ownedIds.length) return [];
+    const s = new Set(ownedIds);
+    return nfts.filter(n => s.has(n.idStr));
+  },[nfts, ownedIds]);
+
+  const clearAll=()=>{setFilters({traits:{},families:[]});setSearch('');setWalletFilter(false);};
+  const rmTrait=cat=>setFilters(f=>{const t={...f.traits};delete t[cat];return {...f,traits:t};});
+  const rmFam=fam=>setFilters(f=>({...f,families:f.families.filter(x=>x!==fam)}));
+
+  const goGallery=()=>setView('gallery');
+  const goHome=()=>{setView('home');setSearch('');setFilters({traits:{},families:[]});setHomeQ('');};
+
+  const commitHome=()=>{
+    const q=homeQ.trim();
+    if(!q) return;
+    setSearch(q); setView('gallery');
+  };
+
+  const onEncPick=(cat,name)=>{
+    const key=tk(cat,name);
+    if(!key||!traitMap[key]) return;
+    const fullVal=`${name} (${traitMap[key].Supply||'?'})`;
+    setFilters({traits:{[cat]:fullVal},families:[]});
+    setSearch('');
+    setView('gallery');
+  };
+
+  // Quick home preview: first exact-prefix match
+  const homePreview = useMemo(()=>{
+    const q=homeQ.trim();
+    if(!q) return null;
+    return nfts.find(n=>String(n.ID).startsWith(q))||null;
+  },[nfts,homeQ]);
+  const homeMatchCount = useMemo(()=>{
+    const q=homeQ.trim();
+    if(!q) return 0;
+    return nfts.filter(n=>String(n.ID).startsWith(q)).length;
+  },[nfts,homeQ]);
+
+  const handleCardClick = useCallback(nft => setSelected(nft), []);
+
+  /* ── Loading / Error ── */
+  if(loading) return(
+    <div className="shell"><div className="state-box"><div className="spinner"/><div style={{fontSize:13,color:'var(--txt2)'}}>Loading Hemi Bros…</div></div></div>
+  );
+  if(error) return(
+    <div className="shell"><div className="state-box"><div className="big">Error</div><div style={{fontSize:12,color:'var(--txt3)',marginTop:4,maxWidth:320}}>{error}</div></div></div>
+  );
+
+  const isGallery  = view==='gallery';
+  const isHome     = view==='home';
+  const isEnc      = view==='encyclopedia';
+  const showFilBar = isGallery && (totalActive>0);
+
+  /* ── RENDER ── */
+  return(
+    <div className="shell">
+
+      {/* ══ HEADER ══ */}
+      <header className="hd">
+        <div className="logo" onClick={goHome}>HEMI<em>BROS</em></div>
+
+        {/* search — only in gallery/enc */}
+        {(isGallery||isEnc)&&(
+          <div className="srch-wrap">
+            <span className="srch-ico">{I.search}</span>
+            <input
+              className="srch"
+              placeholder="Search by ID…"
+              value={search}
+              onChange={e=>setSearch(e.target.value)}
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+            />
+            {search&&<button className="srch-x" onClick={()=>setSearch('')}>{I.x}</button>}
+          </div>
+        )}
+
+        <div className="hd-right">
+          {isGallery&&(
+            <>
+              {/* desktop sidebar toggle */}
+              <button
+                className={`ibtn desktop-only ${sidebar?'on':''}`}
+                title="Toggle filters"
+                onClick={()=>setSidebar(p=>!p)}
+              >{I.sidebar}</button>
+
+              {/* mobile filter button */}
+              <button
+                className={`tbtn mobile-only ${activeCount>0?'on':''}`}
+                onClick={()=>setSheet(true)}
+              >
+                {I.filter} Filters
+                {activeCount>0&&<span className="ct">{activeCount}</span>}
+              </button>
+            </>
+          )}
+
+          {!isEnc&&(
+            <button className="tbtn" onClick={()=>setView('encyclopedia')}>
+              {I.book} <span className="desktop-only">Encyclopedia</span>
+            </button>
+          )}
+          {isEnc&&<button className="tbtn" onClick={goGallery}>← Gallery</button>}
+          {!isHome&&<button className="tbtn" onClick={goHome}>Home</button>}
+        </div>
+      </header>
+
+      {/* ══ ACTIVE FILTER BAR ══ */}
+      {showFilBar&&(
+        <div className="filter-bar">
+          {walletFilter&&(
+            <div className="fpill" style={{borderColor:'var(--green)',background:'rgba(61,220,151,.12)'}}>
+              <span style={{fontSize:12,marginRight:2}}>👛</span>
+              My Bros ({ownedNfts.length})
+              <button onClick={()=>setWalletFilter(false)}>{I.x}</button>
+            </div>
+          )}
+          {search&&(
+            <div className="fpill">ID: {search}<button onClick={()=>setSearch('')}>{I.x}</button></div>
+          )}
+          {filters.families.map(f=>(
+            <div key={f} className="fpill">
+              <span className="fam-dot" style={{background:FAM_COLORS[f],marginRight:3,width:7,height:7,borderRadius:'50%',display:'inline-block',flexShrink:0}}></span>
+              {f}<button onClick={()=>rmFam(f)}>{I.x}</button>
+            </div>
+          ))}
+          {Object.entries(filters.traits).map(([cat,val])=>(
+            <div key={cat} className="fpill">
+              {cat}: {val.split('(')[0].trim()}<button onClick={()=>rmTrait(cat)}>{I.x}</button>
+            </div>
+          ))}
+          {totalActive>1&&<button className="clear-btn" onClick={clearAll}>Clear all</button>}
+          <div className="res-ct"><b>{filtered.length}</b> result{filtered.length!==1?'s':''}</div>
+        </div>
+      )}
+
+      {/* ══ BODY ══ */}
+      <div className="body">
+
+        {/* Desktop sidebar */}
+        {isGallery&&(
+          <aside className={`sidebar ${sidebar?'':'closed'}`}>
+            <div className="sb-top">
+              <span className="sb-top-label">Filters</span>
+              {activeCount>0&&(
+                <button className="clear-btn" style={{fontSize:11,padding:'2px 5px'}} onClick={()=>setFilters({traits:{},families:[]})}>
+                  Clear
+                </button>
+              )}
+            </div>
+            <div className="sb-scroll">
+              <WalletSection
+                ownedIds={ownedIds} setOwnedIds={setOwnedIds}
+                walletFilter={walletFilter} setWalletFilter={v=>{setWalletFilter(v);if(v)setView('gallery');}}
+              />
+              <PortfolioCalc ownedNfts={ownedNfts} />
+              <FilterContent
+                filters={filters} setFilters={setFilters}
+                traitOpts={traitOpts} traitMap={traitMap}
+                facetedCounts={facetedCounts} famCounts={famCounts}
+              />
+            </div>
+            {/* live result count at bottom of sidebar */}
+            <div style={{padding:'10px 14px',borderTop:'1px solid var(--line)',flexShrink:0,textAlign:'center'}}>
+              <span style={{fontFamily:'Space Mono,monospace',fontSize:'1rem',color:'var(--teal)'}}>{filtered.length}</span>
+              <span style={{fontSize:11,color:'var(--txt3)',marginLeft:5}}>result{filtered.length!==1?'s':''}</span>
+            </div>
+          </aside>
+        )}
+
+        {/* Main content */}
+        <div style={{flex:1,display:'flex',flexDirection:'column',overflow:'hidden'}}>
+
+          {/* ── HOME ── */}
+          {isHome&&(
+            <div className="home">
+              <div className="home-hero">
+                <div className="home-eyebrow">Rarity Checker</div>
+                <h1 className="home-h1">FIND YOUR<br/><span>SCORE</span></h1>
+                <p className="home-sub">Type your Hemi Bro ID to instantly check<br/>its rarity score.</p>
+                <div className="home-row">
+                  <input
+                    className="home-inp"
+                    placeholder="Bro ID…"
+                    value={homeQ}
+                    onChange={e=>setHomeQ(e.target.value)}
+                    onKeyDown={e=>e.key==='Enter'&&commitHome()}
+                    type="text"
+                    inputMode="numeric"
+                    autoFocus
+                  />
+                  <button className="home-go" onClick={commitHome}>GO</button>
+                </div>
+
+                {/* Quick preview */}
+                {homeQ&&homePreview&&(
+                  <div className="qres" onClick={()=>setSelected(homePreview)}>
+                    <img className="qres-img" src={homePreview.Image} alt=""/>
+                    <div style={{flex:1}}>
+                      <div className="qres-lbl">Hemi Bro #{homePreview.ID}</div>
+                      <div className="qres-score">{fmtScore(homePreview)}</div>
+                      <div className="qres-hint">Rank #{homePreview.rank} · tap to view</div>
+                    </div>
+                    {homeMatchCount>1&&(
+                      <button
+                        style={{background:'var(--pop-soft)',border:'1px solid var(--pop)',color:'var(--txt)',fontSize:11,fontWeight:700,padding:'4px 9px',borderRadius:7,flexShrink:0,cursor:'pointer'}}
+                        onClick={e=>{e.stopPropagation();commitHome();}}
+                      >+{homeMatchCount-1} more</button>
+                    )}
+                  </div>
+                )}
+                {homeQ&&!homePreview&&nfts.length>0&&(
+                  <p style={{color:'var(--red)',fontSize:13,marginTop:12}}>No Bro found with ID "{homeQ}"</p>
+                )}
+              </div>
+
+              {/* Browse by Family */}
+              <div className="browse">
+                <div className="browse-lbl">Browse by Family</div>
+                <div className="fam-browse">
+                  {Object.keys(FAM_COLORS).filter(f=>f!=='default').sort().map(fam=>{
+                    const cnt=famCounts[fam]||0; if(!cnt) return null;
+                    return(
+                      <button key={fam} className="fam-bchip" onClick={()=>{setFilters({traits:{},families:[fam]});setSearch('');setView('gallery');}}>
+                        <span className="fam-dot" style={{background:FAM_COLORS[fam]}}></span>
+                        {fam}
+                        <span style={{fontSize:10,color:'var(--txt3)'}}>{cnt}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Browse by Trait */}
+              <div className="browse">
+                <div className="browse-lbl">Browse by Trait</div>
+                <div className="cat-browse">
+                  {CATS.map(cat=>(
+                    <button key={cat} className="cat-bchip" onClick={()=>{setView('gallery');setSidebar(true);}}>
+                      {cat}
+                    </button>
+                  ))}
+                  <div className="enc-chip" onClick={()=>setView('encyclopedia')}>
+                    {I.book} Trait Encyclopedia
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ── GALLERY ── */}
+          {isGallery&&(
+            filtered.length===0
+              ?<div className="grid-scroll"><div className="state-box">
+                  <div className="big">NO RESULTS</div>
+                  <div style={{fontSize:13}}>Try removing some filters.</div>
+                  <button style={{marginTop:8,background:'none',border:'1.5px solid var(--line)',borderRadius:8,padding:'6px 14px',color:'var(--txt2)',fontSize:12,fontWeight:600,cursor:'pointer'}} onClick={clearAll}>Clear all filters</button>
+                </div></div>
+              :<VirtualGrid items={filtered} onCardClick={handleCardClick}/>
+          )}
+
+          {/* ── ENCYCLOPEDIA ── */}
+          {isEnc&&(
+            <div className="grid-scroll">
+              <Encyclopedia traitMap={traitMap} onPick={onEncPick}/>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ══ MOBILE FILTER SHEET ══ */}
+      {sheet&&isGallery&&(
+        <div className="sheet-bg" onClick={()=>setSheet(false)}>
+          <div className="sheet" onClick={e=>e.stopPropagation()}>
+            <div className="sheet-handle"/>
+            <div className="sheet-hd">
+              <span className="sheet-title">Filters</span>
+              {activeCount>0&&<button className="clear-btn" onClick={()=>setFilters({traits:{},families:[]})}>Clear all</button>}
+            </div>
+            <div className="sheet-body">
+              <WalletSection
+                ownedIds={ownedIds} setOwnedIds={setOwnedIds}
+                walletFilter={walletFilter} setWalletFilter={v=>{setWalletFilter(v);if(v)setView('gallery');}}
+              />
+              <PortfolioCalc ownedNfts={ownedNfts} />
+              <FilterContent
+                filters={filters} setFilters={setFilters}
+                traitOpts={traitOpts} traitMap={traitMap}
+                facetedCounts={facetedCounts} famCounts={famCounts}
+              />
+            </div>
+            <div className="sheet-ft">
+              <button className="sheet-apply" onClick={()=>setSheet(false)}>
+                Show {filtered.length} result{filtered.length!==1?'s':''}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ══ MODAL ══ */}
+      {selected&&<Modal nft={selected} traitMap={traitMap} onClose={()=>setSelected(null)}/>}
+    </div>
+  );
+};
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
