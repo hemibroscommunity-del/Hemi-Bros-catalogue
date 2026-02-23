@@ -823,6 +823,371 @@ button{cursor:pointer}
   line-height:1.5;
 }
 
+/* ══════════════════════════════════════════
+   NEW FEATURES CSS
+══════════════════════════════════════════ */
+
+/* ── Sort bar ── */
+.sort-bar{
+  display:flex;align-items:center;gap:6px;
+  padding:0 14px;height:38px;
+  background:var(--ink2);border-bottom:1px solid var(--line);
+  flex-shrink:0;overflow-x:auto;
+}
+.sort-bar::-webkit-scrollbar{height:0}
+.sort-lbl{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--txt3);white-space:nowrap;flex-shrink:0}
+.sort-btn{
+  height:26px;padding:0 10px;
+  background:var(--ink3);border:1.5px solid var(--line);
+  border-radius:999px;color:var(--txt2);font-size:11.5px;font-weight:600;
+  white-space:nowrap;flex-shrink:0;
+  transition:all .1s;display:flex;align-items:center;gap:4px;
+}
+.sort-btn:hover{border-color:var(--line2);color:var(--txt)}
+.sort-btn.on{background:var(--pop-soft);border-color:var(--pop);color:var(--txt)}
+.sort-arrow{font-size:10px;opacity:.7}
+
+/* ── Score range filter ── */
+.score-range-body{padding:8px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.score-range-row{display:flex;gap:6px;align-items:center}
+.score-range-inp{
+  flex:1;height:30px;min-width:0;
+  background:var(--ink);border:1.5px solid var(--line);
+  border-radius:7px;color:var(--txt);
+  font-size:12px;font-family:'Space Mono',monospace;
+  padding:0 8px;outline:none;transition:border-color .15s;
+}
+.score-range-inp:focus{border-color:var(--pop)}
+.score-range-sep{color:var(--txt3);font-size:12px;flex-shrink:0}
+.score-range-tiers{display:flex;flex-wrap:wrap;gap:4px;margin-top:2px}
+.score-tier-btn{
+  padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;
+  border:1.5px solid currentColor;background:transparent;cursor:pointer;
+  transition:opacity .1s,background .1s;opacity:.6;
+}
+.score-tier-btn:hover,.score-tier-btn.on{opacity:1;background:rgba(255,255,255,.06)}
+
+/* ── Rarity filter pills ── */
+.rarity-filter-body{padding:6px 10px 10px;display:flex;flex-wrap:wrap;gap:5px}
+.rarity-fbtn{
+  padding:3px 10px;border-radius:999px;font-size:11px;font-weight:700;
+  border:1.5px solid currentColor;background:transparent;cursor:pointer;
+  transition:opacity .1s,background .1s;opacity:.55;
+  display:flex;align-items:center;gap:4px;
+}
+.rarity-fbtn:hover,.rarity-fbtn.on{opacity:1;background:rgba(255,255,255,.07)}
+
+/* ── IP Risk toggle ── */
+.ip-toggle-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 14px;
+}
+.ip-toggle-label{font-size:12px;font-weight:600;color:var(--txt2);display:flex;align-items:center;gap:6px}
+.ip-warn-icon{color:var(--gold);display:flex}
+
+/* ── Leaderboard ── */
+.lb-wrap{padding:14px;display:flex;flex-direction:column;gap:8px}
+.lb-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:4px}
+.lb-tab{
+  height:28px;padding:0 12px;
+  background:var(--ink3);border:1.5px solid var(--line);
+  border-radius:999px;color:var(--txt2);font-size:11.5px;font-weight:600;
+  transition:all .1s;white-space:nowrap;
+}
+.lb-tab:hover{border-color:var(--line2);color:var(--txt)}
+.lb-tab.on{background:var(--pop-soft);border-color:var(--pop);color:var(--txt)}
+.lb-row{
+  display:flex;align-items:center;gap:12px;
+  background:var(--ink3);border:1.5px solid var(--line);
+  border-radius:12px;padding:10px 12px;cursor:pointer;
+  transition:border-color .12s,transform .1s;
+}
+.lb-row:hover{border-color:var(--pop);transform:translateX(3px)}
+.lb-rank{
+  font-family:'VT323',monospace;font-size:1.6rem;color:var(--txt3);
+  width:36px;text-align:center;flex-shrink:0;line-height:1;
+}
+.lb-rank.gold{color:var(--gold)}
+.lb-rank.silver{color:#c0c0c0}
+.lb-rank.bronze{color:#cd7f32}
+.lb-img{width:56px;height:56px;border-radius:10px;object-fit:cover;background:var(--ink4);flex-shrink:0}
+.lb-info{flex:1;min-width:0}
+.lb-id{font-family:'VT323',monospace;font-size:1.3rem;color:var(--txt);line-height:1}
+.lb-score{font-family:'Space Mono',monospace;font-size:.95rem;color:var(--teal)}
+.lb-meta{font-size:10.5px;color:var(--txt3);margin-top:2px}
+.lb-badge{
+  flex-shrink:0;padding:3px 8px;border-radius:6px;
+  font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  border:1.5px solid currentColor;
+}
+
+/* ── Stats dashboard ── */
+.stats-wrap{padding:14px;display:flex;flex-direction:column;gap:14px}
+.stats-section-title{
+  font-size:10px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--txt3);margin-bottom:8px;
+  display:flex;align-items:center;gap:8px;
+}
+.stats-section-title::after{content:'';flex:1;height:1px;background:var(--line)}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px}
+.stat-card{
+  background:var(--ink3);border:1px solid var(--line);
+  border-radius:10px;padding:10px 12px;
+}
+.stat-val{
+  font-family:'Space Mono',monospace;
+  font-size:1.4rem;color:var(--teal);line-height:1;margin-bottom:3px;
+}
+.stat-lbl{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3)}
+.stat-card.accent-pop .stat-val{color:var(--pop)}
+.stat-card.accent-gold .stat-val{color:var(--gold)}
+.stat-card.accent-green .stat-val{color:var(--green)}
+.stat-card.accent-red .stat-val{color:var(--red)}
+.dist-row{display:flex;flex-direction:column;gap:5px}
+.dist-item{display:flex;align-items:center;gap:8px}
+.dist-label{font-size:11px;font-weight:600;width:80px;flex-shrink:0}
+.dist-bar-wrap{flex:1;height:6px;background:var(--ink4);border-radius:99px;overflow:hidden}
+.dist-bar-fill{height:100%;border-radius:99px;transition:width .4s ease}
+.dist-count{font-family:'Space Mono',monospace;font-size:10px;color:var(--txt3);width:32px;text-align:right;flex-shrink:0}
+
+/* ── Bro Builder / Simulator ── */
+.builder-wrap{padding:14px;display:flex;flex-direction:column;gap:12px}
+.builder-slots{display:flex;flex-direction:column;gap:6px}
+.builder-slot{
+  display:flex;align-items:center;gap:8px;
+  background:var(--ink3);border:1.5px solid var(--line);
+  border-radius:9px;padding:7px 10px;cursor:pointer;
+  transition:border-color .1s;
+}
+.builder-slot:hover{border-color:var(--line2)}
+.builder-slot-img{width:30px;height:30px;border-radius:6px;object-fit:contain;background:var(--ink4);flex-shrink:0}
+.builder-slot-cat{font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3)}
+.builder-slot-val{font-size:12px;font-weight:700;color:var(--txt);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.builder-slot-pts{font-family:'Space Mono',monospace;font-size:.78rem;margin-left:auto;flex-shrink:0}
+.builder-result{
+  background:var(--ink);border:1.5px solid var(--pop);
+  border-radius:12px;padding:14px 16px;
+  display:flex;flex-direction:column;gap:8px;
+}
+.builder-score-big{
+  font-family:'VT323',monospace;font-size:3rem;color:var(--teal);
+  line-height:1;text-align:center;
+}
+.builder-score-sub{font-size:11px;color:var(--txt3);text-align:center;margin-top:-4px}
+.builder-fam-row{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:4px}
+.builder-fam-pill{
+  padding:2px 8px;border-radius:999px;font-size:10px;font-weight:700;
+  border:1px solid rgba(255,255,255,.15);
+}
+.builder-picker{
+  position:absolute;z-index:500;
+  background:var(--ink2);border:1.5px solid var(--pop);
+  border-radius:12px;
+  max-height:260px;overflow-y:auto;
+  box-shadow:0 8px 32px rgba(0,0,0,.6);
+  min-width:220px;
+}
+.builder-picker-item{
+  display:flex;align-items:center;gap:8px;
+  padding:7px 12px;cursor:pointer;
+  transition:background .1s;
+}
+.builder-picker-item:hover{background:var(--ink3)}
+.builder-picker-img{width:28px;height:28px;border-radius:5px;object-fit:contain;background:var(--ink4);flex-shrink:0}
+.builder-picker-name{font-size:12px;font-weight:600;color:var(--txt);flex:1}
+.builder-picker-pts{font-family:'Space Mono',monospace;font-size:.75rem;color:var(--teal);flex-shrink:0}
+.builder-share-btn{
+  height:34px;background:var(--pop);color:white;
+  border:none;border-radius:8px;font-size:12px;font-weight:700;
+  cursor:pointer;transition:background .1s;
+  display:flex;align-items:center;justify-content:center;gap:6px;
+}
+.builder-share-btn:hover{background:#6e66ff}
+
+/* ── Similar Bros in modal ── */
+.similar-row{display:flex;gap:7px;overflow-x:auto;padding:2px 0 6px}
+.similar-row::-webkit-scrollbar{height:3px}
+.similar-card{
+  flex-shrink:0;width:72px;cursor:pointer;
+  background:var(--ink3);border:1.5px solid var(--line);
+  border-radius:9px;overflow:hidden;
+  transition:border-color .1s,transform .1s;
+}
+.similar-card:hover{border-color:var(--pop);transform:translateY(-2px)}
+.similar-card img{width:100%;aspect-ratio:1;object-fit:cover}
+.similar-card-score{font-family:'Space Mono',monospace;font-size:.68rem;color:var(--teal);text-align:center;padding:3px 0}
+
+/* ── Offer activity feed ── */
+.feed-wrap{padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.feed-item{
+  display:flex;align-items:center;gap:10px;
+  background:var(--ink3);border:1px solid var(--line);
+  border-radius:9px;padding:8px 10px;cursor:pointer;
+  transition:border-color .1s;
+}
+.feed-item:hover{border-color:var(--line2)}
+.feed-img{width:36px;height:36px;border-radius:7px;object-fit:cover;background:var(--ink4);flex-shrink:0}
+.feed-info{flex:1;min-width:0}
+.feed-top{display:flex;align-items:center;gap:5px;margin-bottom:2px}
+.feed-nft{font-size:12px;font-weight:700;color:var(--txt)}
+.feed-amount{font-family:'Space Mono',monospace;font-size:.9rem;color:var(--teal);margin-left:auto;flex-shrink:0}
+.feed-addr{font-size:10px;color:var(--txt3);font-family:'Space Mono',monospace}
+.feed-time{font-size:10px;color:var(--txt3)}
+.feed-msg{font-size:11px;color:var(--txt2);font-style:italic;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.feed-empty{text-align:center;padding:20px;font-size:13px;color:var(--txt3)}
+.feed-refresh{
+  height:28px;padding:0 12px;font-size:11px;font-weight:700;
+  background:var(--ink3);border:1.5px solid var(--line);
+  border-radius:7px;color:var(--txt2);cursor:pointer;
+  transition:all .1s;
+}
+.feed-refresh:hover{border-color:var(--line2);color:var(--txt)}
+
+/* ── Shareable card modal ── */
+.share-mbd{
+  position:fixed;inset:0;z-index:350;
+  background:rgba(0,0,0,.88);backdrop-filter:blur(8px);
+  display:flex;align-items:center;justify-content:center;
+  padding:16px;
+}
+.share-mbox{
+  background:var(--ink2);border:1px solid var(--line2);
+  border-radius:18px;width:100%;max-width:380px;
+  display:flex;flex-direction:column;overflow:hidden;position:relative;
+}
+.share-canvas-wrap{
+  background:var(--ink);display:flex;align-items:center;justify-content:center;
+  padding:20px;
+}
+.share-actions{padding:14px 18px;display:flex;gap:8px}
+.share-dl-btn{
+  flex:1;height:38px;background:var(--pop);color:white;
+  border:none;border-radius:9px;font-size:13px;font-weight:700;
+  cursor:pointer;transition:background .1s;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+}
+.share-dl-btn:hover{background:#6e66ff}
+.share-copy-btn{
+  height:38px;padding:0 14px;
+  background:var(--ink3);border:1.5px solid var(--line);
+  border-radius:9px;color:var(--txt2);font-size:12px;font-weight:600;
+  cursor:pointer;transition:all .1s;white-space:nowrap;
+}
+.share-copy-btn:hover{border-color:var(--line2);color:var(--txt)}
+
+/* ── Recently Viewed ── */
+.recents-row{display:flex;gap:6px;overflow-x:auto;padding:10px 14px}
+.recents-row::-webkit-scrollbar{height:0}
+.recent-card{
+  flex-shrink:0;width:56px;cursor:pointer;
+  background:var(--ink3);border:1.5px solid var(--line);
+  border-radius:8px;overflow:hidden;
+  transition:border-color .1s,transform .1s;
+}
+.recent-card:hover{border-color:var(--pop);transform:translateY(-2px)}
+.recent-card img{width:100%;aspect-ratio:1;object-fit:cover}
+.recent-id{font-size:9px;color:var(--txt3);text-align:center;padding:2px 0}
+
+/* ── Compare mode ── */
+.compare-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:80;
+  background:var(--ink2);border-top:2px solid var(--pop);
+  padding:10px 16px;display:flex;align-items:center;gap:10px;
+  transform:translateY(100%);transition:transform .2s ease;
+}
+.compare-bar.open{transform:translateY(0)}
+.compare-slots{display:flex;gap:6px;flex:1;overflow-x:auto}
+.compare-slot{
+  width:44px;height:44px;border-radius:8px;
+  background:var(--ink3);border:1.5px dashed var(--line2);
+  flex-shrink:0;overflow:hidden;position:relative;cursor:pointer;
+  transition:border-color .1s;
+}
+.compare-slot.filled{border-style:solid;border-color:var(--pop)}
+.compare-slot img{width:100%;height:100%;object-fit:cover}
+.compare-slot .cs-rm{
+  position:absolute;top:-3px;right:-3px;
+  width:14px;height:14px;border-radius:50%;
+  background:var(--red);color:white;font-size:9px;
+  display:flex;align-items:center;justify-content:center;
+  border:1.5px solid var(--ink2);
+}
+.compare-count{font-size:11px;color:var(--txt2);white-space:nowrap;flex-shrink:0}
+.compare-open-btn{
+  height:36px;padding:0 14px;background:var(--pop);color:white;
+  border:none;border-radius:8px;font-size:12px;font-weight:700;
+  cursor:pointer;transition:background .1s;white-space:nowrap;flex-shrink:0;
+}
+.compare-open-btn:hover{background:#6e66ff}
+.compare-open-btn:disabled{background:var(--ink4);color:var(--txt3);cursor:not-allowed}
+.compare-clear{
+  height:36px;padding:0 10px;background:none;
+  border:1.5px solid var(--line);border-radius:8px;
+  color:var(--txt3);font-size:12px;font-weight:600;cursor:pointer;
+  transition:all .1s;flex-shrink:0;
+}
+.compare-clear:hover{border-color:var(--red);color:var(--red)}
+
+/* ── Compare modal ── */
+.cmp-mbd{
+  position:fixed;inset:0;z-index:250;
+  background:rgba(0,0,0,.9);backdrop-filter:blur(8px);
+  display:flex;flex-direction:column;overflow:hidden;
+}
+.cmp-hd{
+  padding:14px 18px;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;background:var(--ink2);
+}
+.cmp-title{font-family:'VT323',monospace;font-size:1.6rem;color:var(--txt);letter-spacing:.08em}
+.cmp-body{flex:1;overflow-x:auto;overflow-y:auto;padding:14px}
+.cmp-table{border-collapse:collapse;width:100%;min-width:400px}
+.cmp-table th{
+  background:var(--ink3);padding:10px 12px;
+  text-align:center;font-size:11px;font-weight:700;
+  letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);
+  border:1px solid var(--line);
+}
+.cmp-table th.hero-col{width:120px}
+.cmp-table td{
+  padding:10px 12px;text-align:center;
+  border:1px solid var(--line);font-size:12px;color:var(--txt2);
+  vertical-align:middle;
+}
+.cmp-table td.row-label{
+  text-align:left;font-size:10px;font-weight:800;
+  letter-spacing:.1em;text-transform:uppercase;
+  color:var(--txt3);background:var(--ink3);
+  white-space:nowrap;
+}
+.cmp-table td.best{color:var(--teal);font-weight:800}
+.cmp-nft-col{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+}
+.cmp-nft-img{width:80px;height:80px;border-radius:10px;object-fit:cover;background:var(--ink4)}
+.cmp-nft-id{font-family:'VT323',monospace;font-size:1.1rem;color:var(--txt)}
+.cmp-nft-score{font-family:'Space Mono',monospace;font-size:.85rem;color:var(--teal)}
+
+/* ── Deep link toast ── */
+.toast{
+  position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--ink3);border:1px solid var(--pop);
+  border-radius:10px;padding:9px 16px;
+  font-size:12px;font-weight:600;color:var(--txt);
+  z-index:400;pointer-events:none;
+  opacity:0;transition:opacity .2s,transform .2s;
+  white-space:nowrap;
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── Keyboard shortcut hint ── */
+.kbd-hint{
+  display:inline-flex;align-items:center;
+  background:var(--ink4);border:1px solid var(--line2);
+  border-radius:4px;padding:1px 5px;
+  font-family:'Space Mono',monospace;font-size:9px;color:var(--txt3);
+}
+
 /* ── Responsive ── */
 @media(max-width:600px){
   .sidebar{display:none}
@@ -1046,6 +1411,17 @@ const I = {
   check:  <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><polyline points="1.5,6 4.5,9.5 10.5,2"/></svg>,
   wallet: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 12V8a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2v-4"/><path d="M18 12h.01"/><circle cx="18" cy="12" r="2"/></svg>,
   calc:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>,
+  trophy: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 9H3V4h3M18 9h3V4h-3M9 21h6M12 17v4"/><path d="M6 4h12v8a6 6 0 0 1-12 0V4z"/></svg>,
+  chart:  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>,
+  build:  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>,
+  share:  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>,
+  compare:<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/></svg>,
+  link:   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
+  dl:     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+  clock:  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+  eye:    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+  feed:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1" fill="currentColor"/></svg>,
+  sort:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
 };
 
 /* ════════════════════════════════════
@@ -1438,10 +1814,11 @@ const OffersPanel = ({nftId}) => {
 /* ════════════════════════════════════
    NFT MODAL
 ════════════════════════════════════ */
-const Modal = ({nft,traitMap,onClose})=>{
-  const [tab,      setTab]       = useState('traits');
-  const [itemDetail,setItemDetail] = useState(null); // item clicked for sub-modal
-  useEffect(()=>{ setTab('traits'); setItemDetail(null); },[nft?.ID]);
+const Modal = ({nft, traitMap, nfts, onClose, onAddCompare, onSelect})=>{
+  const [tab,       setTab]        = useState('traits');
+  const [itemDetail,setItemDetail] = useState(null);
+  const [showShare, setShowShare]  = useState(false);
+  useEffect(()=>{ setTab('traits'); setItemDetail(null); setShowShare(false); },[nft?.ID]);
   if(!nft) return null;
 
   const slots=[
@@ -1489,12 +1866,28 @@ const Modal = ({nft,traitMap,onClose})=>{
               <div className="mscore">{fmtScore(nft)}</div>
               <div className="mslabel">Score</div>
               <div className="mrank">Rank #{nft.rank} · DI {nft.diScore.toFixed(1)}</div>
+              <div style={{display:'flex',gap:6,marginTop:8,flexWrap:'wrap'}}>
+                <button
+                  onClick={()=>setShowShare(true)}
+                  style={{display:'flex',alignItems:'center',gap:4,height:26,padding:'0 10px',background:'var(--ink4)',border:'1.5px solid var(--line)',borderRadius:7,fontSize:11,fontWeight:600,color:'var(--txt2)',cursor:'pointer',transition:'all .1s'}}
+                  onMouseOver={e=>{e.currentTarget.style.color='var(--txt)';e.currentTarget.style.borderColor='var(--line2)'}}
+                  onMouseOut={e=>{e.currentTarget.style.color='var(--txt2)';e.currentTarget.style.borderColor='var(--line)'}}
+                >{I.share} Share</button>
+                {onAddCompare&&(
+                  <button
+                    onClick={()=>onAddCompare(nft)}
+                    style={{display:'flex',alignItems:'center',gap:4,height:26,padding:'0 10px',background:'var(--ink4)',border:'1.5px solid var(--line)',borderRadius:7,fontSize:11,fontWeight:600,color:'var(--txt2)',cursor:'pointer',transition:'all .1s'}}
+                    onMouseOver={e=>{e.currentTarget.style.color='var(--txt)';e.currentTarget.style.borderColor='var(--line2)'}}
+                    onMouseOut={e=>{e.currentTarget.style.color='var(--txt2)';e.currentTarget.style.borderColor='var(--line)'}}
+                  >{I.compare} Compare</button>
+                )}
+              </div>
             </div>
           </div>
 
           {/* ── Tabs ── */}
-          <div className="mtabs">
-            {[['traits','Traits'],['score','Breakdown'],['family','Family'],['offers','Offers']].map(([k,l])=>(
+          <div className="mtabs" style={{overflowX:'auto'}}>
+            {[['traits','Traits'],['score','Breakdown'],['family','Family'],['similar','Similar'],['offers','Offers']].map(([k,l])=>(
               <button key={k} className={`mtab ${tab===k?'on':''}`} onClick={()=>setTab(k)}>{l}</button>
             ))}
           </div>
@@ -1577,6 +1970,11 @@ const Modal = ({nft,traitMap,onClose})=>{
                 :<p style={{color:'var(--txt2)',fontSize:13,padding:'18px 0'}}>No family data.</p>
             )}
 
+            {/* SIMILAR TAB */}
+            {tab==='similar'&&(
+              <SimilarBros nft={nft} nfts={nfts} onSelect={nft=>{onSelect&&onSelect(nft);}}/>
+            )}
+
             {/* OFFERS TAB */}
             {tab==='offers'&&(
               <OffersPanel nftId={nft.ID}/>
@@ -1585,6 +1983,9 @@ const Modal = ({nft,traitMap,onClose})=>{
           </div>
         </div>
       </div>
+
+      {/* ── Share modal ── */}
+      {showShare&&<ShareCard nft={nft} onClose={()=>setShowShare(false)}/>}
 
       {/* ── Item Detail Sub-Modal ── */}
       {itemDetail && (
@@ -1974,21 +2375,621 @@ const Encyclopedia=({traitMap,onPick})=>{
 };
 
 /* ════════════════════════════════════
+   LEADERBOARD VIEW
+════════════════════════════════════ */
+const Leaderboard = ({nfts, traitMap, onSelect}) => {
+  const [lbTab, setLbTab] = useState('overall');
+  const TABS = [
+    {k:'overall',  label:'Top Bros'},
+    ...CATS.map(c=>({k:c, label:c})),
+  ];
+  const rows = useMemo(()=>{
+    if(lbTab==='overall') return [...nfts].sort((a,b)=>b.diScore-a.diScore).slice(0,25);
+    // Top NFTs by score contribution from a specific category
+    return [...nfts].sort((a,b)=>{
+      const getScore = n => {
+        const val = n[lbTab]; if(!val) return 0;
+        const name = String(val).split('(')[0].trim();
+        const key = tk(lbTab, name);
+        return traitMap[key]?.adjustedScore || 0;
+      };
+      return getScore(b) - getScore(a);
+    }).slice(0,25);
+  },[nfts, lbTab, traitMap]);
+
+  const rankCls = i => i===0?'gold':i===1?'silver':i===2?'bronze':'';
+
+  return (
+    <div className="lb-wrap">
+      <div className="lb-tabs">
+        {TABS.map(t=>(
+          <button key={t.k} className={`lb-tab ${lbTab===t.k?'on':''}`} onClick={()=>setLbTab(t.k)}>{t.label}</button>
+        ))}
+      </div>
+      {rows.map((nft,i)=>{
+        const rarity = getRarityTier(nft.diScore);
+        return(
+          <div key={nft.ID} className="lb-row" onClick={()=>onSelect(nft)}>
+            <div className={`lb-rank ${rankCls(i)}`}>{i===0?'👑':i+1}</div>
+            <img className="lb-img" src={nft.Image} alt={`#${nft.ID}`} loading="lazy"/>
+            <div className="lb-info">
+              <div className="lb-id">#{nft.ID}</div>
+              <div className="lb-score">{fmtScore(nft)}</div>
+              <div className="lb-meta">Rank #{nft.rank} · {nft.dominantFamilies[0]||'—'}</div>
+            </div>
+            {rarity&&<div className="lb-badge" style={{color:rarity.color,borderColor:rarity.color}}>{rarity.tier}</div>}
+          </div>
+        );
+      })}
+    </div>
+  );
+};
+
+/* ════════════════════════════════════
+   STATS DASHBOARD
+════════════════════════════════════ */
+const StatsDashboard = ({nfts, traitMap}) => {
+  const stats = useMemo(()=>{
+    if(!nfts.length) return null;
+    const scores = nfts.map(n=>n.diScore);
+    const total = nfts.length;
+    const avg = scores.reduce((a,b)=>a+b,0)/total;
+    const tiers = {Grail:0,Legendary:0,Epic:0,Rare:0,Uncommon:0,Common:0};
+    scores.forEach(s=>{
+      const r = getRarityTier(s);
+      tiers[r?r.tier:'Common']++;
+    });
+    // Most and least common trait per category
+    const traitFreq = {};
+    CATS.forEach(cat=>{
+      const counts = {};
+      nfts.forEach(n=>{
+        const v = n[cat]; if(!v||v==='None') return;
+        const name = String(v).split('(')[0].trim();
+        counts[name]=(counts[name]||0)+1;
+      });
+      const sorted = Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+      traitFreq[cat] = {most:sorted[0], least:sorted[sorted.length-1]};
+    });
+    const top = [...nfts].sort((a,b)=>b.diScore-a.diScore)[0];
+    const bottom = [...nfts].sort((a,b)=>a.diScore-b.diScore)[0];
+    return {total,avg,tiers,traitFreq,top,bottom};
+  },[nfts]);
+
+  if(!stats) return <div style={{padding:20,color:'var(--txt3)',fontSize:13}}>Loading…</div>;
+  const RARITY_ORDER = ['Grail','Legendary','Epic','Rare','Uncommon','Common'];
+  const RARITY_COLORS = {Grail:'var(--r-grail)',Legendary:'var(--r-legendary)',Epic:'var(--r-epic)',Rare:'var(--r-rare)',Uncommon:'var(--r-uncommon)',Common:'var(--txt3)'};
+
+  return (
+    <div className="stats-wrap">
+      {/* Key numbers */}
+      <div>
+        <div className="stats-section-title">Collection Overview</div>
+        <div className="stats-grid">
+          <div className="stat-card"><div className="stat-val">{stats.total.toLocaleString()}</div><div className="stat-lbl">Total Bros</div></div>
+          <div className="stat-card accent-teal"><div className="stat-val">{stats.avg.toFixed(1)}</div><div className="stat-lbl">Avg Score</div></div>
+          <div className="stat-card accent-gold"><div className="stat-val">{fmtScore(stats.top)}</div><div className="stat-lbl">Highest Score</div></div>
+          <div className="stat-card accent-pop"><div className="stat-val">{stats.tiers.Grail}</div><div className="stat-lbl">Grails 🔴</div></div>
+        </div>
+      </div>
+
+      {/* Rarity distribution */}
+      <div>
+        <div className="stats-section-title">Rarity Distribution</div>
+        <div className="dist-row">
+          {RARITY_ORDER.map(tier=>{
+            const count = stats.tiers[tier]||0;
+            const pct = (count/stats.total*100);
+            return(
+              <div key={tier} className="dist-item">
+                <div className="dist-label" style={{color:RARITY_COLORS[tier],fontWeight:700}}>{tier}</div>
+                <div className="dist-bar-wrap">
+                  <div className="dist-bar-fill" style={{width:`${pct}%`,background:RARITY_COLORS[tier]}}/>
+                </div>
+                <div className="dist-count">{count}</div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Rarest traits */}
+      <div>
+        <div className="stats-section-title">Rarest Traits</div>
+        <div style={{display:'flex',flexDirection:'column',gap:5}}>
+          {CATS.map(cat=>{
+            const {least} = stats.traitFreq[cat]||{};
+            if(!least) return null;
+            return(
+              <div key={cat} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'6px 10px',background:'var(--ink3)',borderRadius:8,border:'1px solid var(--line)'}}>
+                <div>
+                  <div style={{fontSize:9,fontWeight:800,letterSpacing:'.1em',textTransform:'uppercase',color:'var(--txt3)'}}>{cat}</div>
+                  <div style={{fontSize:12,fontWeight:700,color:'var(--txt)'}}>{least[0]}</div>
+                </div>
+                <div style={{fontFamily:'Space Mono,monospace',fontSize:'.8rem',color:'var(--r-grail)'}}>{least[1]} <span style={{fontSize:9,color:'var(--txt3)'}}>supply</span></div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ════════════════════════════════════
+   BRO BUILDER
+════════════════════════════════════ */
+const BroBuilder = ({traitMap, nfts, onSelect}) => {
+  const [selections, setSelections] = useState({});
+  const [pickerCat,  setPickerCat]  = useState(null);
+  const [pickerRef,  setPickerRef]  = useState(null);
+  const pickerContainerRef = useRef(null);
+
+  useEffect(()=>{
+    const handler = e => {
+      if(pickerContainerRef.current && !pickerContainerRef.current.contains(e.target)) setPickerCat(null);
+    };
+    document.addEventListener('mousedown', handler);
+    return ()=>document.removeEventListener('mousedown', handler);
+  },[]);
+
+  // Build options per category from traitMap
+  const opts = useMemo(()=>{
+    const o = {};
+    CATS.forEach(cat=>{
+      const items = [];
+      Object.entries(traitMap).forEach(([key, detail])=>{
+        if(!key.startsWith(cat.trim().toLowerCase()+':')) return;
+        const name = key.split(':').slice(1).join(':');
+        items.push({name: name.charAt(0).toUpperCase()+name.slice(1), detail, score: detail.adjustedScore||0});
+      });
+      o[cat] = items.sort((a,b)=>b.score-a.score);
+    });
+    return o;
+  },[traitMap]);
+
+  // Calculate builder score
+  const result = useMemo(()=>{
+    let total = 0;
+    const famTot = {};
+    CATS.forEach(cat=>{
+      const sel = selections[cat];
+      if(!sel) return;
+      total += sel.score;
+      if(sel.detail?.tags) Object.entries(sel.detail.tags).forEach(([t,s])=>{
+        famTot[t]=(famTot[t]||0)+(typeof s==='number'?s:parseFloat(s)||0);
+      });
+    });
+    const fams = Object.entries(famTot).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    const rarity = getRarityTier(total);
+    return {total, fams, rarity};
+  },[selections]);
+
+  // Find the closest real Bro to this build
+  const closestBro = useMemo(()=>{
+    if(Object.keys(selections).length < 2) return null;
+    const selCats = Object.keys(selections);
+    let best = null, bestScore = -1;
+    nfts.forEach(n=>{
+      let matches = 0;
+      selCats.forEach(cat=>{
+        const val = n[cat];
+        if(!val) return;
+        const name = String(val).split('(')[0].trim().toLowerCase();
+        if(name === selections[cat].name.toLowerCase()) matches++;
+      });
+      if(matches > bestScore){bestScore=matches;best=n;}
+    });
+    return bestScore > 0 ? {nft:best,matches:bestScore} : null;
+  },[selections, nfts]);
+
+  const clear = () => setSelections({});
+
+  return (
+    <div className="builder-wrap" ref={pickerContainerRef}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <div style={{fontSize:11,color:'var(--txt3)'}}>Pick traits to build your dream Bro</div>
+        {Object.keys(selections).length>0&&<button onClick={clear} style={{fontSize:11,color:'var(--red)',background:'none',border:'none',cursor:'pointer',fontWeight:700}}>Reset</button>}
+      </div>
+
+      <div className="builder-slots">
+        {CATS.map(cat=>{
+          const sel = selections[cat];
+          const rarity = sel ? getRarityTier(sel.score) : null;
+          return(
+            <div key={cat} style={{position:'relative'}}>
+              <div className="builder-slot" onClick={()=>setPickerCat(pickerCat===cat?null:cat)}>
+                {sel?.detail?.thumbnailUrl
+                  ? <img className="builder-slot-img" src={sel.detail.thumbnailUrl} alt={sel.name}/>
+                  : <div className="builder-slot-img" style={{display:'flex',alignItems:'center',justifyContent:'center',color:'var(--txt3)'}}>{I.none}</div>
+                }
+                <div style={{flex:1,minWidth:0}}>
+                  <div className="builder-slot-cat">{cat}</div>
+                  <div className="builder-slot-val" style={{color:rarity?rarity.color:'var(--txt2)'}}>{sel?sel.name:'— Any —'}</div>
+                </div>
+                {sel&&sel.score>0&&<div className="builder-slot-pts" style={{color:rarity?rarity.color:'var(--teal)'}}>+{sel.score.toFixed(1)}</div>}
+                <span style={{color:'var(--txt3)',fontSize:10,marginLeft:4}}>{pickerCat===cat?'▲':'▼'}</span>
+              </div>
+              {pickerCat===cat&&(
+                <div className="builder-picker" style={{top:'100%',left:0,right:0,marginTop:4}}>
+                  <div
+                    className="builder-picker-item"
+                    onClick={()=>{ setSelections(s=>{ const ns={...s}; delete ns[cat]; return ns;}); setPickerCat(null); }}
+                  >
+                    <div className="builder-picker-img" style={{display:'flex',alignItems:'center',justifyContent:'center',color:'var(--txt3)'}}>{I.none}</div>
+                    <div className="builder-picker-name" style={{color:'var(--txt3)'}}>— None —</div>
+                  </div>
+                  {opts[cat]?.map(item=>(
+                    <div key={item.name} className="builder-picker-item" onClick={()=>{setSelections(s=>({...s,[cat]:item}));setPickerCat(null);}}>
+                      {item.detail?.thumbnailUrl
+                        ? <img className="builder-picker-img" src={item.detail.thumbnailUrl} alt={item.name}/>
+                        : <div className="builder-picker-img" style={{display:'flex',alignItems:'center',justifyContent:'center',color:'var(--txt3)'}}>{I.none}</div>
+                      }
+                      <div className="builder-picker-name">{item.name}</div>
+                      {item.score>0&&<div className="builder-picker-pts">+{item.score.toFixed(1)}</div>}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {Object.keys(selections).length>0&&(
+        <div className="builder-result">
+          <div className="builder-score-big">{result.total.toFixed(1)}</div>
+          <div className="builder-score-sub" style={{color:result.rarity?result.rarity.color:'var(--txt3)'}}>
+            {result.rarity?result.rarity.tier+' Tier':'No rarity tier'}
+          </div>
+          {result.fams.length>0&&(
+            <div className="builder-fam-row">
+              {result.fams.map(([name,score])=>(
+                <div key={name} className="builder-fam-pill" style={{color:FAM_COLORS[name]||FAM_COLORS.default,background:`${FAM_COLORS[name]||FAM_COLORS.default}18`}}>
+                  {name} {score.toFixed(0)}pts
+                </div>
+              ))}
+            </div>
+          )}
+          {closestBro&&(
+            <div style={{marginTop:6,textAlign:'center'}}>
+              <div style={{fontSize:10,color:'var(--txt3)',marginBottom:5}}>Closest real match ({closestBro.matches} traits)</div>
+              <div style={{display:'flex',alignItems:'center',gap:8,justifyContent:'center',cursor:'pointer',background:'var(--ink3)',borderRadius:8,padding:'6px 10px',border:'1px solid var(--line)'}} onClick={()=>onSelect(closestBro.nft)}>
+                <img src={closestBro.nft.Image} alt="" style={{width:32,height:32,borderRadius:6,objectFit:'cover'}}/>
+                <div style={{fontSize:12}}>
+                  <div style={{fontWeight:700,color:'var(--txt)'}}>#{closestBro.nft.ID}</div>
+                  <div style={{fontFamily:'Space Mono,monospace',fontSize:'.78rem',color:'var(--teal)'}}>{fmtScore(closestBro.nft)}</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+/* ════════════════════════════════════
+   SHARE CARD (Canvas)
+════════════════════════════════════ */
+const ShareCard = ({nft, onClose}) => {
+  const canvasRef = useRef(null);
+  const [copied, setCopied] = useState(false);
+
+  useEffect(()=>{
+    const canvas = canvasRef.current;
+    if(!canvas||!nft) return;
+    const ctx = canvas.getContext('2d');
+    const W=400, H=400;
+    canvas.width=W; canvas.height=H;
+
+    const rarity = getRarityTier(nft.diScore);
+    const accentColor = rarity ? rarity.color : '#00d4b8';
+    const famColor = FAM_COLORS[nft.dominantFamilies[0]]||FAM_COLORS.default;
+
+    // Background gradient
+    const bg = ctx.createLinearGradient(0,0,W,H);
+    bg.addColorStop(0,'#0b0c14');
+    bg.addColorStop(1,'#12141f');
+    ctx.fillStyle = bg;
+    ctx.fillRect(0,0,W,H);
+
+    // Accent border
+    ctx.strokeStyle = accentColor;
+    ctx.lineWidth = 3;
+    ctx.strokeRect(2,2,W-4,H-4);
+
+    // Corner decorations
+    const drawCorner = (x,y,flip)=>{
+      ctx.save();ctx.translate(x,y);if(flip)ctx.scale(-1,-1);
+      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(30,0);ctx.moveTo(0,0);ctx.lineTo(0,30);
+      ctx.strokeStyle=accentColor+'99';ctx.lineWidth=2;ctx.stroke();ctx.restore();
+    };
+    drawCorner(8,8,false);drawCorner(W-8,H-8,true);
+
+    // Load and draw NFT image
+    const img = new Image();
+    img.crossOrigin='anonymous';
+    img.onload=()=>{
+      // Image centered, large
+      const iSize=220;
+      ctx.save();
+      ctx.beginPath();
+      const ix=(W-iSize)/2, iy=40;
+      ctx.roundRect(ix,iy,iSize,iSize,12);
+      ctx.clip();
+      ctx.drawImage(img,ix,iy,iSize,iSize);
+      ctx.restore();
+
+      // Family color bar under image
+      ctx.fillStyle=famColor+'66';
+      ctx.fillRect((W-iSize)/2,iy+iSize-4,iSize,4);
+
+      // ID
+      ctx.fillStyle='#e8eaf8';
+      ctx.font='bold 28px "Space Mono", monospace';
+      ctx.textAlign='center';
+      ctx.fillText(`#${nft.ID}`,W/2,290);
+
+      // Score
+      ctx.fillStyle=accentColor;
+      ctx.font='bold 42px "Space Mono", monospace';
+      ctx.fillText(fmtScore(nft),W/2,340);
+
+      // Rarity
+      if(rarity){
+        ctx.fillStyle=accentColor+'33';
+        const rx=W/2-50,ry=350,rw=100,rh=22;
+        ctx.beginPath();ctx.roundRect(rx,ry,rw,rh,11);ctx.fill();
+        ctx.fillStyle=accentColor;
+        ctx.font='bold 11px sans-serif';
+        ctx.fillText(rarity.tier.toUpperCase(),W/2,365);
+      }
+
+      // Branding
+      ctx.fillStyle='#4d5580';
+      ctx.font='11px sans-serif';
+      ctx.fillText('HEMI BROS · Rarity Checker',W/2,392);
+    };
+    img.onerror=()=>{
+      // Fallback without image
+      ctx.fillStyle='#e8eaf8';ctx.font='bold 60px "VT323"';ctx.textAlign='center';
+      ctx.fillText(`#${nft.ID}`,W/2,180);
+      ctx.fillStyle=accentColor;ctx.font='bold 48px monospace';
+      ctx.fillText(fmtScore(nft),W/2,250);
+    };
+    img.src=nft.Image;
+  },[nft]);
+
+  const download = () => {
+    const canvas = canvasRef.current;
+    if(!canvas) return;
+    const a = document.createElement('a');
+    a.download=`hemi-bro-${nft.ID}.png`;
+    a.href=canvas.toDataURL('image/png');
+    a.click();
+  };
+
+  const copyLink = () => {
+    const url = `${window.location.href.split('?')[0]}?id=${nft.ID}`;
+    navigator.clipboard.writeText(url).then(()=>{
+      setCopied(true);
+      setTimeout(()=>setCopied(false),2000);
+    });
+  };
+
+  return(
+    <div className="share-mbd" onClick={onClose}>
+      <div className="share-mbox" onClick={e=>e.stopPropagation()}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px 0'}}>
+          <span style={{fontSize:13,fontWeight:700,color:'var(--txt)'}}>Share Bro #{nft.ID}</span>
+          <button className="mclose" style={{position:'static'}} onClick={onClose}>{I.x}</button>
+        </div>
+        <div className="share-canvas-wrap">
+          <canvas ref={canvasRef} style={{maxWidth:'100%',borderRadius:8}}/>
+        </div>
+        <div className="share-actions">
+          <button className="share-dl-btn" onClick={download}>{I.dl} Download PNG</button>
+          <button className="share-copy-btn" onClick={copyLink} style={{color:copied?'var(--green)':'var(--txt2)'}}>
+            {copied?<>{I.check} Copied!</>:<>{I.link} Copy Link</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ════════════════════════════════════
+   GLOBAL OFFER FEED
+════════════════════════════════════ */
+const OfferFeed = ({nfts, onSelectNft}) => {
+  const [offers, setOffers]   = useState([]);
+  const [loading,setLoading]  = useState(true);
+
+  const load = useCallback(()=>{
+    setLoading(true);
+    supa.select('offers','limit=30')
+      .then(d=>{ setOffers(d||[]); setLoading(false); })
+      .catch(()=>{ setOffers([]); setLoading(false); });
+  },[]);
+
+  useEffect(()=>{ load(); },[]);
+
+  const nftById = useMemo(()=>{
+    const m={};
+    nfts.forEach(n=>m[String(n.ID)]=n);
+    return m;
+  },[nfts]);
+
+  const shortAddr = a => a?`${a.slice(0,6)}…${a.slice(-4)}`:'';
+  const fmtTime = ts=>{
+    try{
+      const diff = Date.now()-new Date(ts).getTime();
+      if(diff<60000) return 'just now';
+      if(diff<3600000) return `${Math.floor(diff/60000)}m ago`;
+      if(diff<86400000) return `${Math.floor(diff/3600000)}h ago`;
+      return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    }catch{return '';}
+  };
+
+  return(
+    <div className="feed-wrap">
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+        <div style={{fontSize:10,fontWeight:800,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--txt3)'}}>Live Offers</div>
+        <button className="feed-refresh" onClick={load}>↻ Refresh</button>
+      </div>
+      {loading
+        ? <div className="feed-empty">Loading…</div>
+        : offers.length===0
+          ? <div className="feed-empty">No offers yet. Be the first to make one!</div>
+          : offers.map(o=>{
+              const nft = nftById[String(o.nft_id)];
+              return(
+                <div key={o.id} className="feed-item" onClick={()=>nft&&onSelectNft(nft)}>
+                  {nft&&<img className="feed-img" src={nft.Image} alt={`#${o.nft_id}`} loading="lazy"/>}
+                  <div className="feed-info">
+                    <div className="feed-top">
+                      <span className="feed-nft">Bro #{o.nft_id}</span>
+                      <span className="feed-amount">Ξ {parseFloat(o.offer_amount).toFixed(3)}</span>
+                    </div>
+                    <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                      <span className="feed-addr">{shortAddr(o.wallet_address)}</span>
+                      <span className="feed-time">{I.clock} {fmtTime(o.created_at)}</span>
+                    </div>
+                    {o.message&&<div className="feed-msg">"{o.message}"</div>}
+                  </div>
+                </div>
+              );
+            })
+      }
+    </div>
+  );
+};
+
+/* ════════════════════════════════════
+   COMPARE MODAL
+════════════════════════════════════ */
+const CompareModal = ({nfts: compareBros, traitMap, onClose, onSelect}) => {
+  if(!compareBros.length) return null;
+  const rows = [
+    {label:'Score',    fn: n=>fmtScore(n), sort:n=>n.diScore},
+    {label:'Rank',     fn: n=>`#${n.rank}`, sort:n=>-n.rank},
+    {label:'Rarity',   fn: n=>{ const r=getRarityTier(n.diScore); return r?r.tier:'Common'; }, sort:n=>n.diScore},
+    {label:'Family',   fn: n=>n.dominantFamilies[0]||'—', sort:null},
+    ...CATS.map(cat=>({label:cat, fn:n=>{const v=n[cat]||'—';return String(v).split('(')[0].trim();}, sort:null})),
+  ];
+  const bestIdx = compareBros.reduce((bi,n,i)=>n.diScore>compareBros[bi].diScore?i:bi,0);
+
+  return(
+    <div className="cmp-mbd">
+      <div className="cmp-hd">
+        <div className="cmp-title">COMPARE BROS</div>
+        <button className="mclose" style={{position:'static'}} onClick={onClose}>{I.x}</button>
+      </div>
+      <div className="cmp-body">
+        <table className="cmp-table">
+          <thead>
+            <tr>
+              <th style={{textAlign:'left'}}>Trait</th>
+              {compareBros.map((n,i)=>(
+                <th key={n.ID} className="hero-col">
+                  <div className="cmp-nft-col">
+                    <img className="cmp-nft-img" src={n.Image} alt={`#${n.ID}`}/>
+                    <div className="cmp-nft-id" style={{cursor:'pointer'}} onClick={()=>{onSelect(n);onClose();}}>{`#${n.ID}`}</div>
+                    <div className="cmp-nft-score">{fmtScore(n)}</div>
+                    {i===bestIdx&&<span style={{fontSize:9,fontWeight:800,color:'var(--gold)',letterSpacing:'.1em'}}>BEST</span>}
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(row=>(
+              <tr key={row.label}>
+                <td className="row-label">{row.label}</td>
+                {compareBros.map((n,i)=>{
+                  const val = row.fn(n);
+                  const isBest = row.sort && i===compareBros.reduce((bi,x,xi)=>row.sort(x)>row.sort(compareBros[bi])?xi:bi,0);
+                  return <td key={n.ID} className={isBest?'best':''}>{val}</td>;
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+/* ════════════════════════════════════
+   SIMILAR BROS (used inside Modal)
+════════════════════════════════════ */
+const SimilarBros = ({nft, nfts, onSelect}) => {
+  const similar = useMemo(()=>{
+    if(!nft||!nfts.length) return [];
+    return nfts
+      .filter(n=>n.ID!==nft.ID)
+      .map(n=>{
+        let score=0;
+        CATS.forEach(cat=>{ if(n[cat]&&n[cat]===nft[cat]) score++; });
+        return {nft:n,score};
+      })
+      .filter(x=>x.score>0)
+      .sort((a,b)=>b.score-a.score||b.nft.diScore-a.nft.diScore)
+      .slice(0,8);
+  },[nft,nfts]);
+
+  if(!similar.length) return null;
+  return(
+    <div style={{marginTop:8}}>
+      <div style={{fontSize:10,fontWeight:800,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--txt3)',marginBottom:6}}>Similar Bros</div>
+      <div className="similar-row">
+        {similar.map(({nft:s,score})=>(
+          <div key={s.ID} className="similar-card" onClick={()=>onSelect(s)} title={`${score} matching traits`}>
+            <img src={s.Image} alt={`#${s.ID}`} loading="lazy"/>
+            <div className="similar-card-score">{fmtScore(s)}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+/* ════════════════════════════════════
+   TOAST
+════════════════════════════════════ */
+const Toast = ({msg, show}) => (
+  <div className={`toast ${show?'show':''}`}>{msg}</div>
+);
+
+/* ════════════════════════════════════
    APP
 ════════════════════════════════════ */
 const App=()=>{
-  const [data,setData]         = useState(null);
-  const [loading,setLoading]   = useState(true);
-  const [error,setError]       = useState(null);
-  const [view,setView]         = useState('home');   // home | gallery | encyclopedia
-  const [search,setSearch]     = useState('');       // live ID search (gallery)
-  const [homeQ,setHomeQ]       = useState('');       // home big input
-  const [filters,setFilters]   = useState({traits:{},families:[]});
-  const [selected,setSelected] = useState(null);
-  const [sidebar,setSidebar]   = useState(true);     // desktop sidebar
-  const [sheet,setSheet]       = useState(false);    // mobile sheet
-  const [ownedIds,setOwnedIds] = useState([]);       // wallet NFT IDs
-  const [walletFilter,setWalletFilter] = useState(false); // toggle: show only owned
+  const [data,setData]           = useState(null);
+  const [loading,setLoading]     = useState(true);
+  const [error,setError]         = useState(null);
+  const [view,setView]           = useState('home');   // home | gallery | encyclopedia | leaderboard | stats | builder | feed
+  const [search,setSearch]       = useState('');
+  const [homeQ,setHomeQ]         = useState('');
+  const [filters,setFilters]     = useState({traits:{},families:[]});
+  const [selected,setSelected]   = useState(null);
+  const [sidebar,setSidebar]     = useState(true);
+  const [sheet,setSheet]         = useState(false);
+  const [ownedIds,setOwnedIds]   = useState([]);
+  const [walletFilter,setWalletFilter] = useState(false);
+  const [sortKey,setSortKey]     = useState('score_desc');  // NEW: sort
+  const [scoreMin,setScoreMin]   = useState('');            // NEW: score range
+  const [scoreMax,setScoreMax]   = useState('');
+  const [rarityFilter,setRarityFilter] = useState([]);      // NEW: rarity tier filter
+  const [hideIp,setHideIp]       = useState(false);         // NEW: IP filter
+  const [compareBros,setCompareBros]   = useState([]);      // NEW: compare
+  const [showCompare,setShowCompare]   = useState(false);
+  const [recentlyViewed,setRecentlyViewed] = useState(()=>{ // NEW: recently viewed
+    try{const s=localStorage.getItem('hb_recent');return s?JSON.parse(s):[];}catch{return [];}
+  });
+  const [toast,setToast]         = useState({msg:'',show:false}); // NEW: toast
+  const [deepLinkHandled,setDeepLinkHandled] = useState(false);
 
   useEffect(()=>{
     loadData()
@@ -1996,13 +2997,76 @@ const App=()=>{
       .catch(e=>{setError(e.message);setLoading(false);});
   },[]);
 
+  // Deep link: ?id=1234
+  useEffect(()=>{
+    if(!data||deepLinkHandled) return;
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get('id');
+    if(id){
+      const nft = data.nfts.find(n=>String(n.ID)===id);
+      if(nft){ setSelected(nft); setView('gallery'); }
+    }
+    setDeepLinkHandled(true);
+  },[data]);
+
+  // Keyboard navigation
+  useEffect(()=>{
+    const handler = e => {
+      if(e.key==='Escape'){ setSelected(null); setShowCompare(false); return; }
+      if(!selected||showCompare) return;
+      const nfts = data?.nfts||[];
+      const idx = nfts.findIndex(n=>n.ID===selected.ID);
+      if(e.key==='ArrowRight'||e.key==='ArrowDown'){
+        const next=nfts[idx+1]; if(next) setSelected(next);
+      }
+      if(e.key==='ArrowLeft'||e.key==='ArrowUp'){
+        const prev=nfts[idx-1]; if(prev) setSelected(prev);
+      }
+    };
+    window.addEventListener('keydown',handler);
+    return()=>window.removeEventListener('keydown',handler);
+  },[selected,data,showCompare]);
+
+  const showToast = useCallback((msg)=>{
+    setToast({msg,show:true});
+    setTimeout(()=>setToast(t=>({...t,show:false})),2200);
+  },[]);
+
+  const addToRecent = useCallback((nft)=>{
+    setRecentlyViewed(prev=>{
+      const next = [nft,...prev.filter(n=>n.ID!==nft.ID)].slice(0,8);
+      try{localStorage.setItem('hb_recent',JSON.stringify(next));}catch{}
+      return next;
+    });
+  },[]);
+
+  const handleCardClick = useCallback(nft=>{
+    setSelected(nft);
+    addToRecent(nft);
+  },[addToRecent]);
+
+  const handleAddCompare = useCallback(nft=>{
+    setCompareBros(prev=>{
+      if(prev.find(n=>n.ID===nft.ID)){showToast('Already in compare');return prev;}
+      if(prev.length>=4){showToast('Max 4 Bros to compare');return prev;}
+      return [...prev,nft];
+    });
+    showToast(`#${nft.ID} added to compare`);
+  },[showToast]);
+
   const nfts     = data?.nfts||[];
   const traitMap = data?.traitMap||{};
-
-  // Debounce search so heavy recomputes don't fire on every keystroke
   const debouncedSearch = useDebounce(search, 80);
 
-  /* live-filtered results — uses precomputed idStr + famSet */
+  const SORT_OPTIONS = [
+    {k:'score_desc',  label:'Score ↓'},
+    {k:'score_asc',   label:'Score ↑'},
+    {k:'id_asc',      label:'ID ↑'},
+    {k:'id_desc',     label:'ID ↓'},
+    {k:'rarest',      label:'Rarest'},
+    {k:'common',      label:'Most Common'},
+  ];
+
   const filtered = useMemo(()=>{
     if(!nfts.length) return [];
     const q = debouncedSearch.trim();
@@ -2010,9 +3074,14 @@ const App=()=>{
     const famLen   = filters.families.length;
     const traitEntries = Object.entries(filters.traits);
     const traitLen = traitEntries.length;
-    return nfts.filter(nft=>{
+    const sMin = scoreMin!==''?parseFloat(scoreMin):null;
+    const sMax = scoreMax!==''?parseFloat(scoreMax):null;
+    const rarSet = rarityFilter.length>0 ? new Set(rarityFilter) : null;
+
+    let result = nfts.filter(nft=>{
       if(ownedSet && !ownedSet.has(nft.idStr)) return false;
       if(q && !nft.idStr.startsWith(q)) return false;
+      if(hideIp && nft.hasIpRisk) return false;
       if(famLen > 0) {
         let ok = false;
         for(let i=0;i<famLen;i++) if(nft.famSet.has(filters.families[i])){ ok=true; break; }
@@ -2021,11 +3090,31 @@ const App=()=>{
       for(let i=0;i<traitLen;i++){
         if(nft[traitEntries[i][0]] !== traitEntries[i][1]) return false;
       }
+      if(sMin!==null && nft.diScore<sMin) return false;
+      if(sMax!==null && nft.diScore>sMax) return false;
+      if(rarSet){
+        const r = getRarityTier(nft.diScore);
+        const tierName = r?r.tier:'Common';
+        if(!rarSet.has(tierName)) return false;
+      }
       return true;
     });
-  },[nfts, debouncedSearch, filters, walletFilter, ownedIds]);
 
-  /* trait options — computed once from full nfts array */
+    // Sort
+    switch(sortKey){
+      case 'score_asc':  result.sort((a,b)=>a.diScore-b.diScore); break;
+      case 'id_asc':     result.sort((a,b)=>Number(a.ID)-Number(b.ID)); break;
+      case 'id_desc':    result.sort((a,b)=>Number(b.ID)-Number(a.ID)); break;
+      case 'rarest':     result.sort((a,b)=>a.diScore-b.diScore); break;  // lower score = more common, inverted for rarest
+      case 'common':     result.sort((a,b)=>b.diScore-a.diScore); break;
+      default: break; // score_desc is default (already sorted)
+    }
+    // Fix 'rarest' - actually want lowest supply, approximate via score ascending
+    if(sortKey==='rarest') result.sort((a,b)=>b.diScore-a.diScore);
+
+    return result;
+  },[nfts, debouncedSearch, filters, walletFilter, ownedIds, sortKey, scoreMin, scoreMax, rarityFilter, hideIp]);
+
   const traitOpts = useMemo(()=>{
     const o={};
     CATS.forEach(cat=>{
@@ -2036,7 +3125,6 @@ const App=()=>{
     return o;
   },[nfts]);
 
-  /* faceted counts — single O(n) pass, uses precomputed fields */
   const facetedCounts = useMemo(()=>{
     const fc={};
     CATS.forEach(cat=>fc[cat]={});
@@ -2050,10 +3138,8 @@ const App=()=>{
         for(let i=0;i<famLen;i++) if(nft.famSet.has(filters.families[i])){ ok=true; break; }
         if(!ok) return;
       }
-      // For each category, count this nft if it passes all OTHER trait filters
       CATS.forEach(cat=>{
         const v=nft[cat]; if(!v||v==='None') return;
-        // Check all trait filters except this category
         for(let i=0;i<traitEntries.length;i++){
           const [c,val]=traitEntries[i];
           if(c!==cat && nft[c]!==val) return;
@@ -2070,17 +3156,19 @@ const App=()=>{
     return fc;
   },[nfts]);
 
-  const activeCount = Object.keys(filters.traits).length+filters.families.length+(walletFilter?1:0);
+  const activeCount = Object.keys(filters.traits).length+filters.families.length+(walletFilter?1:0)+(rarityFilter.length>0?1:0)+(hideIp?1:0)+((scoreMin||scoreMax)?1:0);
   const totalActive = activeCount+(search?1:0);
 
-  // Owned NFTs matched to our data (for portfolio calculator)
   const ownedNfts = useMemo(()=>{
     if(!ownedIds.length) return [];
     const s = new Set(ownedIds);
     return nfts.filter(n => s.has(n.idStr));
   },[nfts, ownedIds]);
 
-  const clearAll=()=>{setFilters({traits:{},families:[]});setSearch('');setWalletFilter(false);};
+  const clearAll=()=>{
+    setFilters({traits:{},families:[]});setSearch('');setWalletFilter(false);
+    setRarityFilter([]);setScoreMin('');setScoreMax('');setHideIp(false);
+  };
   const rmTrait=cat=>setFilters(f=>{const t={...f.traits};delete t[cat];return {...f,traits:t};});
   const rmFam=fam=>setFilters(f=>({...f,families:f.families.filter(x=>x!==fam)}));
 
@@ -2102,7 +3190,6 @@ const App=()=>{
     setView('gallery');
   };
 
-  // Quick home preview: first exact-prefix match
   const homePreview = useMemo(()=>{
     const q=homeQ.trim();
     if(!q) return null;
@@ -2113,8 +3200,6 @@ const App=()=>{
     if(!q) return 0;
     return nfts.filter(n=>String(n.ID).startsWith(q)).length;
   },[nfts,homeQ]);
-
-  const handleCardClick = useCallback(nft => setSelected(nft), []);
 
   /* ── Loading / Error ── */
   if(loading) return(
@@ -2127,7 +3212,21 @@ const App=()=>{
   const isGallery  = view==='gallery';
   const isHome     = view==='home';
   const isEnc      = view==='encyclopedia';
+  const isLb       = view==='leaderboard';
+  const isStats    = view==='stats';
+  const isBuilder  = view==='builder';
+  const isFeed     = view==='feed';
   const showFilBar = isGallery && (totalActive>0);
+  const showSortBar= isGallery;
+
+  const NAV_VIEWS = [
+    {k:'gallery',     icon:I.filter,   label:'Gallery'},
+    {k:'leaderboard', icon:I.trophy,   label:'Top Bros'},
+    {k:'stats',       icon:I.chart,    label:'Stats'},
+    {k:'builder',     icon:I.build,    label:'Builder'},
+    {k:'feed',        icon:I.feed,     label:'Offers Feed'},
+    {k:'encyclopedia',icon:I.book,     label:'Encyclopedia'},
+  ];
 
   /* ── RENDER ── */
   return(
@@ -2137,7 +3236,6 @@ const App=()=>{
       <header className="hd">
         <div className="logo" onClick={goHome}>HEMI<em>BROS</em></div>
 
-        {/* search — only in gallery/enc */}
         {(isGallery||isEnc)&&(
           <div className="srch-wrap">
             <span className="srch-ico">{I.search}</span>
@@ -2155,45 +3253,69 @@ const App=()=>{
         )}
 
         <div className="hd-right">
+          {/* Nav buttons */}
+          {NAV_VIEWS.map(({k,icon,label})=>(
+            <button
+              key={k}
+              className={`tbtn desktop-only ${view===k?'on':''}`}
+              onClick={()=>setView(k)}
+              title={label}
+            >{icon}<span style={{fontSize:11}}>{label}</span></button>
+          ))}
+
           {isGallery&&(
             <>
-              {/* desktop sidebar toggle */}
               <button
                 className={`ibtn desktop-only ${sidebar?'on':''}`}
                 title="Toggle filters"
                 onClick={()=>setSidebar(p=>!p)}
               >{I.sidebar}</button>
-
-              {/* mobile filter button */}
               <button
                 className={`tbtn mobile-only ${activeCount>0?'on':''}`}
                 onClick={()=>setSheet(true)}
               >
-                {I.filter} Filters
+                {I.filter}
                 {activeCount>0&&<span className="ct">{activeCount}</span>}
               </button>
             </>
           )}
-
-          {!isEnc&&(
-            <button className="tbtn" onClick={()=>setView('encyclopedia')}>
-              {I.book} <span className="desktop-only">Encyclopedia</span>
-            </button>
-          )}
-          {isEnc&&<button className="tbtn" onClick={goGallery}>← Gallery</button>}
-          {!isHome&&<button className="tbtn" onClick={goHome}>Home</button>}
         </div>
       </header>
 
-      {/* ══ ACTIVE FILTER BAR ══ */}
+      {/* Mobile nav row */}
+      <div className="mobile-only" style={{display:'flex',gap:4,padding:'6px 10px',background:'var(--ink2)',borderBottom:'1px solid var(--line)',overflowX:'auto',flexShrink:0}}>
+        {NAV_VIEWS.map(({k,icon,label})=>(
+          <button key={k} className={`sort-btn ${view===k?'on':''}`} style={{gap:4}} onClick={()=>setView(k)}>
+            {icon}{label}
+          </button>
+        ))}
+      </div>
+
+      {/* ── Filter bar ── */}
       {showFilBar&&(
         <div className="filter-bar">
           {walletFilter&&(
             <div className="fpill" style={{borderColor:'var(--green)',background:'rgba(61,220,151,.12)'}}>
-              <span style={{fontSize:12,marginRight:2}}>👛</span>
-              My Bros ({ownedNfts.length})
+              👛 My Wallet ({ownedIds.length})
               <button onClick={()=>setWalletFilter(false)}>{I.x}</button>
             </div>
+          )}
+          {rarityFilter.map(t=>{
+            const RARITY_COLORS={Grail:'var(--r-grail)',Legendary:'var(--r-legendary)',Epic:'var(--r-epic)',Rare:'var(--r-rare)',Uncommon:'var(--r-uncommon)',Common:'var(--txt3)'};
+            return(
+              <div key={t} className="fpill" style={{borderColor:RARITY_COLORS[t]||'var(--pop)',background:`${RARITY_COLORS[t]||'var(--pop)'}18`}}>
+                {t}<button onClick={()=>setRarityFilter(r=>r.filter(x=>x!==t))}>{I.x}</button>
+              </div>
+            );
+          })}
+          {(scoreMin||scoreMax)&&(
+            <div className="fpill">
+              Score: {scoreMin||'0'}–{scoreMax||'∞'}
+              <button onClick={()=>{setScoreMin('');setScoreMax('');}}>{I.x}</button>
+            </div>
+          )}
+          {hideIp&&(
+            <div className="fpill">{I.warn} No IP Risk<button onClick={()=>setHideIp(false)}>{I.x}</button></div>
           )}
           {search&&(
             <div className="fpill">ID: {search}<button onClick={()=>setSearch('')}>{I.x}</button></div>
@@ -2211,6 +3333,16 @@ const App=()=>{
           ))}
           {totalActive>1&&<button className="clear-btn" onClick={clearAll}>Clear all</button>}
           <div className="res-ct"><b>{filtered.length}</b> result{filtered.length!==1?'s':''}</div>
+        </div>
+      )}
+
+      {/* ── Sort bar ── */}
+      {showSortBar&&(
+        <div className="sort-bar">
+          <span className="sort-lbl">{I.sort} Sort</span>
+          {SORT_OPTIONS.map(({k,label})=>(
+            <button key={k} className={`sort-btn ${sortKey===k?'on':''}`} onClick={()=>setSortKey(k)}>{label}</button>
+          ))}
         </div>
       )}
 
@@ -2234,13 +3366,66 @@ const App=()=>{
                 walletFilter={walletFilter} setWalletFilter={v=>{setWalletFilter(v);if(v)setView('gallery');}}
               />
               <PortfolioCalc ownedNfts={ownedNfts} />
+
+              {/* Rarity filter */}
+              <div className="acc-sec">
+                <div style={{padding:'10px 14px 4px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                  <span style={{fontSize:10,fontWeight:800,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--txt3)'}}>Rarity Tier</span>
+                  {rarityFilter.length>0&&<span className="sel-badge">{rarityFilter.length}</span>}
+                </div>
+                <div className="rarity-filter-body">
+                  {[{t:'Grail',c:'var(--r-grail)'},{t:'Legendary',c:'var(--r-legendary)'},{t:'Epic',c:'var(--r-epic)'},{t:'Rare',c:'var(--r-rare)'},{t:'Uncommon',c:'var(--r-uncommon)'},{t:'Common',c:'var(--txt3)'}].map(({t,c})=>(
+                    <button key={t} className={`rarity-fbtn ${rarityFilter.includes(t)?'on':''}`}
+                      style={{color:c,borderColor:c}}
+                      onClick={()=>setRarityFilter(r=>r.includes(t)?r.filter(x=>x!==t):[...r,t])}
+                    >{t}</button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Score range */}
+              <div className="acc-sec">
+                <div style={{padding:'10px 14px 4px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+                  <span style={{fontSize:10,fontWeight:800,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--txt3)'}}>Score Range</span>
+                  {(scoreMin||scoreMax)&&<span className="sel-badge">1</span>}
+                </div>
+                <div className="score-range-body">
+                  <div className="score-range-row">
+                    <input className="score-range-inp" placeholder="Min" value={scoreMin} onChange={e=>setScoreMin(e.target.value)} type="number"/>
+                    <span className="score-range-sep">—</span>
+                    <input className="score-range-inp" placeholder="Max" value={scoreMax} onChange={e=>setScoreMax(e.target.value)} type="number"/>
+                  </div>
+                  <div className="score-range-tiers">
+                    {[{l:'Uncommon',min:10,max:24},{l:'Rare',min:25,max:44},{l:'Epic',min:45,max:149},{l:'Legendary',min:150,max:299},{l:'Grail',min:300,max:''}].map(({l,min,max,c})=>{
+                      const RARITY_COLORS={Grail:'var(--r-grail)',Legendary:'var(--r-legendary)',Epic:'var(--r-epic)',Rare:'var(--r-rare)',Uncommon:'var(--r-uncommon)'};
+                      return(
+                        <button key={l} className="score-tier-btn" style={{color:RARITY_COLORS[l]||'var(--txt2)'}}
+                          onClick={()=>{setScoreMin(String(min));setScoreMax(max?String(max):'');}}
+                        >{l}</button>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+
+              {/* IP Risk toggle */}
+              <div className="acc-sec">
+                <div className="ip-toggle-row">
+                  <span className="ip-toggle-label"><span className="ip-warn-icon">{I.warn}</span> Hide IP Risk Items</span>
+                  <label className="toggle-switch">
+                    <input type="checkbox" checked={hideIp} onChange={e=>setHideIp(e.target.checked)}/>
+                    <div className="toggle-track"/>
+                    <div className="toggle-knob"/>
+                  </label>
+                </div>
+              </div>
+
               <FilterContent
                 filters={filters} setFilters={setFilters}
                 traitOpts={traitOpts} traitMap={traitMap}
                 facetedCounts={facetedCounts} famCounts={famCounts}
               />
             </div>
-            {/* live result count at bottom of sidebar */}
             <div style={{padding:'10px 14px',borderTop:'1px solid var(--line)',flexShrink:0,textAlign:'center'}}>
               <span style={{fontFamily:'Space Mono,monospace',fontSize:'1rem',color:'var(--teal)'}}>{filtered.length}</span>
               <span style={{fontSize:11,color:'var(--txt3)',marginLeft:5}}>result{filtered.length!==1?'s':''}</span>
@@ -2271,10 +3456,8 @@ const App=()=>{
                   />
                   <button className="home-go" onClick={commitHome}>GO</button>
                 </div>
-
-                {/* Quick preview */}
                 {homeQ&&homePreview&&(
-                  <div className="qres" onClick={()=>setSelected(homePreview)}>
+                  <div className="qres" onClick={()=>{setSelected(homePreview);addToRecent(homePreview);}}>
                     <img className="qres-img" src={homePreview.Image} alt=""/>
                     <div style={{flex:1}}>
                       <div className="qres-lbl">Hemi Bro #{homePreview.ID}</div>
@@ -2292,6 +3475,33 @@ const App=()=>{
                 {homeQ&&!homePreview&&nfts.length>0&&(
                   <p style={{color:'var(--red)',fontSize:13,marginTop:12}}>No Bro found with ID "{homeQ}"</p>
                 )}
+              </div>
+
+              {/* Recently viewed */}
+              {recentlyViewed.length>0&&(
+                <div className="browse" style={{maxWidth:720}}>
+                  <div className="browse-lbl">{I.clock} Recently Viewed</div>
+                  <div className="recents-row">
+                    {recentlyViewed.map(n=>(
+                      <div key={n.ID} className="recent-card" onClick={()=>{setSelected(n);addToRecent(n);}}>
+                        <img src={n.Image} alt={`#${n.ID}`} loading="lazy"/>
+                        <div className="recent-id">#{n.ID}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Quick links */}
+              <div className="browse" style={{maxWidth:720}}>
+                <div className="browse-lbl">Explore</div>
+                <div style={{display:'flex',flexWrap:'wrap',gap:7}}>
+                  {NAV_VIEWS.map(({k,icon,label})=>(
+                    <button key={k} className="fam-bchip" onClick={()=>setView(k)} style={{gap:6}}>
+                      {icon}{label}
+                    </button>
+                  ))}
+                </div>
               </div>
 
               {/* Browse by Family */}
@@ -2345,6 +3555,34 @@ const App=()=>{
               <Encyclopedia traitMap={traitMap} onPick={onEncPick}/>
             </div>
           )}
+
+          {/* ── LEADERBOARD ── */}
+          {isLb&&(
+            <div className="grid-scroll">
+              <Leaderboard nfts={nfts} traitMap={traitMap} onSelect={n=>{setSelected(n);addToRecent(n);}}/>
+            </div>
+          )}
+
+          {/* ── STATS ── */}
+          {isStats&&(
+            <div className="grid-scroll">
+              <StatsDashboard nfts={nfts} traitMap={traitMap}/>
+            </div>
+          )}
+
+          {/* ── BUILDER ── */}
+          {isBuilder&&(
+            <div className="grid-scroll">
+              <BroBuilder traitMap={traitMap} nfts={nfts} onSelect={n=>{setSelected(n);addToRecent(n);}}/>
+            </div>
+          )}
+
+          {/* ── OFFER FEED ── */}
+          {isFeed&&(
+            <div className="grid-scroll">
+              <OfferFeed nfts={nfts} onSelectNft={n=>{setSelected(n);addToRecent(n);}}/>
+            </div>
+          )}
         </div>
       </div>
 
@@ -2363,6 +3601,29 @@ const App=()=>{
                 walletFilter={walletFilter} setWalletFilter={v=>{setWalletFilter(v);if(v)setView('gallery');}}
               />
               <PortfolioCalc ownedNfts={ownedNfts} />
+              {/* Rarity filter mobile */}
+              <div className="acc-sec" style={{padding:'10px 14px'}}>
+                <div style={{fontSize:10,fontWeight:800,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--txt3)',marginBottom:8}}>Rarity Tier</div>
+                <div style={{display:'flex',flexWrap:'wrap',gap:5}}>
+                  {[{t:'Grail',c:'var(--r-grail)'},{t:'Legendary',c:'var(--r-legendary)'},{t:'Epic',c:'var(--r-epic)'},{t:'Rare',c:'var(--r-rare)'},{t:'Uncommon',c:'var(--r-uncommon)'},{t:'Common',c:'var(--txt3)'}].map(({t,c})=>(
+                    <button key={t} className={`rarity-fbtn ${rarityFilter.includes(t)?'on':''}`}
+                      style={{color:c,borderColor:c}}
+                      onClick={()=>setRarityFilter(r=>r.includes(t)?r.filter(x=>x!==t):[...r,t])}
+                    >{t}</button>
+                  ))}
+                </div>
+              </div>
+              {/* IP toggle mobile */}
+              <div className="acc-sec">
+                <div className="ip-toggle-row">
+                  <span className="ip-toggle-label"><span className="ip-warn-icon">{I.warn}</span> Hide IP Risk</span>
+                  <label className="toggle-switch">
+                    <input type="checkbox" checked={hideIp} onChange={e=>setHideIp(e.target.checked)}/>
+                    <div className="toggle-track"/>
+                    <div className="toggle-knob"/>
+                  </label>
+                </div>
+              </div>
               <FilterContent
                 filters={filters} setFilters={setFilters}
                 traitOpts={traitOpts} traitMap={traitMap}
@@ -2378,13 +3639,52 @@ const App=()=>{
         </div>
       )}
 
+      {/* ══ COMPARE BAR ══ */}
+      <div className={`compare-bar ${compareBros.length>0?'open':''}`}>
+        <div className="compare-count">{I.compare} Compare ({compareBros.length}/4)</div>
+        <div className="compare-slots">
+          {compareBros.map(n=>(
+            <div key={n.ID} className="compare-slot filled" title={`Bro #${n.ID}`}>
+              <img src={n.Image} alt={`#${n.ID}`}/>
+              <div className="cs-rm" onClick={e=>{e.stopPropagation();setCompareBros(p=>p.filter(x=>x.ID!==n.ID));}}>×</div>
+            </div>
+          ))}
+          {Array.from({length:4-compareBros.length}).map((_,i)=>(
+            <div key={i} className="compare-slot"/>
+          ))}
+        </div>
+        <button className="compare-open-btn" disabled={compareBros.length<2} onClick={()=>setShowCompare(true)}>
+          Compare
+        </button>
+        <button className="compare-clear" onClick={()=>setCompareBros([])}>Clear</button>
+      </div>
+
       {/* ══ MODAL ══ */}
-      {selected&&<Modal nft={selected} traitMap={traitMap} onClose={()=>setSelected(null)}/>}
+      {selected&&(
+        <Modal
+          nft={selected} traitMap={traitMap} nfts={nfts}
+          onClose={()=>setSelected(null)}
+          onAddCompare={handleAddCompare}
+          onSelect={n=>{setSelected(n);addToRecent(n);}}
+        />
+      )}
+
+      {/* ══ COMPARE MODAL ══ */}
+      {showCompare&&compareBros.length>=2&&(
+        <CompareModal
+          nfts={compareBros} traitMap={traitMap}
+          onClose={()=>setShowCompare(false)}
+          onSelect={n=>{setSelected(n);addToRecent(n);}}
+        />
+      )}
+
+      {/* ══ TOAST ══ */}
+      <Toast msg={toast.msg} show={toast.show}/>
     </div>
   );
 };
 
-ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>
 </html>
