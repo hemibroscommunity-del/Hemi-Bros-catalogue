@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html><head>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head><body><div id="root"><div id="err" style="color:red;padding:20px;font-family:monospace">Loading...</div></div>
+<script>
+window.onerror=function(m,s,l,c,e){document.getElementById("err").textContent="ERROR: "+m+" line:"+l;return false;};
+</script>
+<script type="text/babel">
+const {useState,useEffect,useMemo,useRef,useCallback,useDeferredValue,useTransition,startTransition}=React;
+const {useState,useEffect,useMemo,useRef,useCallback,useDeferredValue,useTransition,startTransition} = React;
+const BASE    = 'https://raw.githubusercontent.com/hemibroscommunity-del/Hemi-Bros-catalogue/main';
+const CDN     = 'https://cdn.jsdelivr.net/gh/hemibroscommunity-del/Hemi-Bros-catalogue@main';
+const NFT_U   = `${BASE}/Hemi%20Bro%20spreadsheet-CleanDataWithImages.csv`;
+const SUP_U   = `${BASE}/Hemi%20Bro%20spreadsheet-SupplyCount.csv`;
+const TAGS_U  = `${BASE}/Hemi_Bros_V14_Worksheet%20-%20Trait%20Scoring.csv`;
+const SCR_U   = `${BASE}/Hemi_Bros_V14_Worksheet%20-%20All%20NFT%20scores.csv`;
+const SALES_U = `${BASE}/hemibrossales%20-%20Sold.csv`;
+
+const CATS = ['Bro Type','Headwear','Clothes','Eyes','Eyewear','Mouth Items'];
+const FLOOR_ETH = 0.005; // used for display estimates (current floor)
+const FLOOR_LO  = 0.004; // historical floor low  (for range accuracy / premium baseline)
+const FLOOR_HI  = 0.013; // historical floor high (for range accuracy upper bound)
+const FLOOR_MID = (FLOOR_LO + FLOOR_HI) / 2; // midpoint ~0.0095
+
+/* ════════════════════════════════════
+   FEATURE FLAGS
+   Toggle features without touching
+   component code.
+════════════════════════════════════ */
+const FEATURES = {
+  watchlist:     true,
+  priceEstimate: true,
+  ipFilter:      true,
+  compareMode:   true,
+  walletConnect: true,
+  portfolio:     true,
+  offerFeed:     true,
+  deepLinks:     true,
+  ethPrice:      true,
+};
+
+/* ════════════════════════════════════
+   APP CONTEXT
+   Collection data available to any
+   component without prop drilling.
+════════════════════════════════════ */
+const AppCtx = React.createContext(null);
+const useApp = () => React.useContext(AppCtx);
+
+const FAM_COLORS = {
+  Brand:'#fca5a5',Prestige:'#fde047',Villainous:'#86efac',Enforcer:'#93c5fd',
+  Fantasy:'#6ee7b7','Sci-fi':'#67e8f9',Whimsical:'#fbcfe8',Heritage:'#fdba74',
+  Drip:'#f472b6',Urban:'#9ca3af',Meme:'#bef264',Minimalist:'#e2e8f0',
+  Scene:'#d8b4fe',Hemi:'#fdba74',Zombie:'#bef264',Alien:'#c4b5fd',
+  Robot:'#67e8f9',Gold:'#fde047',Demon:'#fca5a5',Angel:'#93c5fd',
+  Cyborg:'#a5b4fc',Ape:'#d7ccc8',Human:'#f9a8d4',Skeleton:'#d1d5db',
+  default:'#cbd5e1'
+};
+
+/* ════════════════════════════════════
+   UTILS
+════════════════════════════════════ */
+const tk  = (cat,name) => !name?null:`${cat.trim().toLowerCase()}:${name.trim().toLowerCase()}`;
+const isIp= v => !!v && ['yes','y','true','1'].includes(String(v).trim().toLowerCase());
+
+// Simple debounce hook
+const useDebounce = (value, ms) => {
+  const [debounced, setDebounced] = useState(value);
+  useEffect(() => {
+    const t = setTimeout(() => setDebounced(value), ms);
+    return () => clearTimeout(t);
+  }, [value, ms]);
+  return debounced;
+};
+
+const normCat = c => {
+  const l = c.trim().toLowerCase();
+  if(l==='head'||l==='hats') return 'Headwear';
+  if(l==='face'||l==='glasses') return 'Eyewear';
+  if(l==='mouth') return 'Mouth Items';
+  if(l==='torso'||l==='clothing'||l==='shirt') return 'Clothes';
+  if(l==='base'||l==='body') return 'Bro Type';
+  return c.trim();
+};
+
+const thumbUrl = (cat,file,name) => {
+  const f = file ? (file.trim().match(/\.[a-z]+$/i)?file.trim():file.trim()+'.png') : null;
+  if(f) return `${CDN}/${encodeURIComponent(cat)}/${encodeURIComponent(f)}`;
+  if(name) return `${CDN}/${encodeURIComponent(cat)}/${encodeURIComponent(name)}.png`;
+  return null;
+};
+
+// Extract the numeric floor multiple from an NFT's displayMultiple field.
+// "10x - 30x" → midpoint 20. "15x" → 15. null/missing → fall back to diScore.
+// Returns {lo, hi, mid} — lo/hi are the range endpoints (lo===hi for single values)
+const getMultipleRange = nft => {
+  const dm = nft.displayMultiple;
+  if(dm != null){
+    const s = String(dm).trim();
+    if(s && s !== 'null'){
+      const range = s.match(/^([\d.]+)x?\s*[-–]\s*([\d.]+)x?$/i);
+      if(range){
+        const lo = parseFloat(range[1]), hi = parseFloat(range[2]);
+        return {lo, hi, mid:(lo+hi)/2};
+      }
+      const n = parseFloat(s.replace(/x/gi,'').replace(/,/g,''));
+      if(!isNaN(n) && n > 0) return {lo:n, hi:n, mid:n};
+    }
+  }
+  return null;
+};
+// Backwards-compat single value (midpoint) for places that just need a number
+const getMultiple = nft => { const r = getMultipleRange(nft); return r ? r.mid : null; };
+
+// Derive floor multiple range directly from a DI score.
+// Thresholds extracted from All NFT scores CSV — definitive mapping.
+const DI_TIERS = [
+  { minDI: 375.0, lo: 30, hi: 50 }, // 30x - 50x
+  { minDI: 148.0, lo: 10, hi: 30 }, // 10x - 30x
+  { minDI:  65.2, lo:  5, hi: 10 }, // 5x  - 10x
+  { minDI:  45.0, lo:  2, hi:  5 }, // 2x  - 5x
+  { minDI:  35.0, lo:1.5, hi:  2 }, // 1.5x - 2x
+  { minDI:  23.5, lo:  1, hi:1.5 }, // 1x  - 1.5x
+  { minDI:  15.0, lo:  1, hi:  1 }, // 1x  - 1x
+  { minDI:   0,   lo:0.8, hi:  1 }, // 0.8x - 1x (floor/below-floor)
+];
+const diScoreToRange = score => {
+  for(const t of DI_TIERS) if(score >= t.minDI) return { lo: t.lo, hi: t.hi, mid: (t.lo + t.hi) / 2 };
+  return { lo: 0.8, hi: 1, mid: 0.9 }; // fallback
+};
+
+const fmtEth = (multiple, ethPrice=null) => {
+  const est = FLOOR_ETH * multiple;
+  const ethStr = est < 0.01 ? est.toFixed(4) : est.toFixed(3);
+  const usdStr = ethPrice ? ` (~$${Math.round(est * ethPrice).toLocaleString()})` : '';
+  return `${ethStr} ETH${usdStr}`;
+};
+
+const fmtScore = nft => {
+  const dm = nft.displayMultiple;
+  if(dm!=null){
+    const s = String(dm).trim();
+    if(!s||s==='null') return nft.diScore.toFixed(1);
+    if(isNaN(Number(s.replace(/,/g,'')))) return s; // "10x - 30x" range
+    const n = parseFloat(s.replace(/,/g,''));
+    if(!isNaN(n)) return Number.isInteger(n)?`${n}x`:`${n.toFixed(2)}x`;
+  }
+  return nft.diScore.toFixed(1);
+};
+
+/* ════════════════════════════════════
+   DATA LOAD
+════════════════════════════════════ */
+async function loadData(){
+  const txt = url => fetch(url).then(r=>{if(!r.ok)throw new Error(url);return r.text();});
+  const [nftTxt,supTxt,tagsTxt,scrTxt,salesTxt] = await Promise.all([txt(NFT_U),txt(SUP_U),txt(TAGS_U),txt(SCR_U),txt(SALES_U).catch(()=>'')]);
+  const traitMap={}, scoresMap={};
+
+  // --- sales ---
+  const salesMap = {};
+  if(salesTxt && salesTxt.trim()){
+    await new Promise(res=>Papa.parse(salesTxt,{header:true,dynamicTyping:false,skipEmptyLines:true,complete:r=>{
+      // Normalize all column keys to lowercase-no-spaces for flexible matching
+      const norm = s => String(s||'').toLowerCase().replace(/[^a-z0-9]/g,'');
+      const get = (row, ...keys) => {
+        const rn = Object.fromEntries(Object.entries(row).map(([k,v])=>[norm(k),v]));
+        for(const k of keys){ const v=rn[norm(k)]; if(v!==undefined&&v!==null&&v!=='') return v; }
+        return '';
+      };
+      if(r.data.length>0) console.log('[Sales CSV] columns:', Object.keys(r.data[0]), 'first row:', r.data[0]);
+      r.data.forEach(row=>{
+        const rawId = get(row,'NFT ID','NFTID','Token ID','TokenID','ID','id','token id','#','Bro','Bro ID','NFT','NFT ID','Number');
+        if(!rawId) return;
+        const sid = String(rawId).trim();
+        if(!salesMap[sid]) salesMap[sid]=[];
+        const rawPrice = get(row,'Price (ETH)','PriceETH','Price','price','ETH','eth','Amount','amount','Sale Price','saleprice','Value','value','Cost','cost');
+        const rawDate  = get(row,'Date','date','Sale Date','saledate','Sold Date','solddate','Transaction Date');
+        const rawBuyer = get(row,'Buyer','buyer','To','to');
+        const rawSeller= get(row,'Seller','seller','From','from');
+        salesMap[sid].push({
+          price:  parseFloat(String(rawPrice).replace(/[^0-9.]/g,''))||0,
+          date:   String(rawDate).trim(),
+          buyer:  String(rawBuyer).trim(),
+          seller: String(rawSeller).trim(),
+        });
+      });
+      res();
+    }}));
+  }
+
+  // --- scores ---
+  Papa.parse(scrTxt,{header:true,dynamicTyping:true,skipEmptyLines:true,complete:r=>{
+    r.data.forEach(row=>{
+      if(!row.ID) return;
+      let dm = row['Display Multiple']??row['Display_Multiple']??null;
+      if(typeof dm==='string'){
+        const s=dm.trim(), n=parseFloat(s.replace(/,/g,''));
+        dm = (!isNaN(n)&&String(n)===s.replace(/,/g,'')) ? n : s;
+      }
+      scoresMap[row.ID]={diScore:row['DI Score']||row['DI_Score']||0, displayMultiple:dm};
+    });
+  }});
+
+  // --- supply / trait master ---
+  await new Promise(res=>Papa.parse(supTxt,{header:true,skipEmptyLines:true,complete:r=>{
+    r.data.forEach(d=>{
+      const keys=Object.keys(d);
+      const catRaw = d.Category||d[keys.find(k=>k.trim().toLowerCase()==='category')];
+      const item   = d['Unique Item List']||d[keys.find(k=>['unique item list','item name','trait','item'].includes(k.trim().toLowerCase()))];
+      if(!catRaw||!item) return;
+      const cat  = normCat(catRaw);
+      const name = item.split('(')[0].trim();
+      const key  = tk(cat,name);
+      if(!key) return;
+      const supply   = d.Count||d.Supply||d.Quantity||d.Qty||d[keys.find(k=>['count','supply','quantity','qty'].includes(k.trim().toLowerCase()))];
+      const thumbFile= d.IconName||d.ThumbFilename||d.Image||d.Filename;
+      const ipRisk   = d['IP Concern']||d['IP Risk']||d[keys.find(k=>k.toLowerCase().includes('ip risk')||k.toLowerCase().includes('ip concern'))];
+      traitMap[key]  = {...d,Category:cat,'Unique Item List':name,
+        Supply:supply!=null?String(supply):'',
+        'IP Risk':ipRisk,
+        thumbnailUrl:thumbUrl(cat,thumbFile,name),
+        tags:{},adjustedScore:0};
+    });
+    res();
+  }}));
+
+  // --- tags + adj scores ---
+  await new Promise(res=>Papa.parse(tagsTxt,{header:true,dynamicTyping:true,skipEmptyLines:true,complete:r=>{
+    r.data.forEach(d=>{
+      const keys=Object.keys(d);
+      const catRaw=d.Category||d[keys.find(k=>k.trim().toLowerCase()==='category')];
+      const item=d['Unique Item List']||d[keys.find(k=>['unique item list','item name','trait','item'].includes(k.trim().toLowerCase()))];
+      if(!catRaw||!item) return;
+      const cat=normCat(catRaw), name=item.split('(')[0].trim(), key=tk(cat,name);
+      if(!key) return;
+      if(!traitMap[key]) traitMap[key]={Category:cat,'Unique Item List':name,Supply:'',tags:{},adjustedScore:0};
+      const tags={};
+      for(let i=1;i<=10;i++){
+        const th=keys.find(k=>k.trim().toLowerCase().replace(/[^a-z0-9]/g,'')=== `tag${i}`);
+        const sh=keys.find(k=>{const n=k.trim().toLowerCase().replace(/[^a-z0-9]/g,'');return n===`is${i}`||n===`score${i}`;});
+        if(!th) continue;
+        const tn=d[th]; if(!tn||typeof tn!=='string'||!tn.trim()||tn.toLowerCase()==='none') continue;
+        if(tn.trim().toLowerCase()==='minimalist') continue;
+        let sc=sh?(typeof d[sh]==='number'?d[sh]:parseFloat(d[sh])||0):0;
+        if(isNaN(sc)) sc=0;
+        tags[tn.trim()]=sc;
+      }
+      traitMap[key].tags=tags;
+      const ak=keys.find(k=>['adjusted score','adjustedscore','calculated is','item score'].includes(k.trim().toLowerCase()));
+      if(ak){const v=d[ak],sc=typeof v==='number'?v:parseFloat(String(v).replace(/,/g,''));if(!isNaN(sc))traitMap[key].adjustedScore=sc;}
+    });
+    res();
+  }}));
+
+  // --- NFTs ---
+  const nfts = await new Promise((res,rej)=>Papa.parse(nftTxt,{
+    header:true,dynamicTyping:true,skipEmptyLines:true,
+    complete:r=>{
+      const tmp=r.data.filter(n=>n.ID).map(n=>{
+        const e={...n,hasIpRisk:false};
+        const nk=Object.keys(n);
+        const famSc={};
+        CATS.forEach(cat=>{
+          let key=cat;
+          if(n[key]===undefined) key=nk.find(x=>x.trim().toLowerCase()===cat.toLowerCase())||key;
+          if(n[key]===undefined){
+            if(cat==='Headwear') key=nk.find(x=>x.trim().toLowerCase()==='head')||key;
+            if(cat==='Bro Type') key=nk.find(x=>['body','base'].includes(x.trim().toLowerCase()))||key;
+            if(cat==='Clothes') key=nk.find(x=>['torso','clothing'].includes(x.trim().toLowerCase()))||key;
+            if(cat==='Eyewear') key=nk.find(x=>['face','glasses'].includes(x.trim().toLowerCase()))||key;
+            if(cat==='Mouth Items') key=nk.find(x=>x.trim().toLowerCase()==='mouth')||key;
+          }
+          const val=n[key]; if(!val) return;
+          const name=String(val).split('(')[0].trim();
+          const tkey=tk(cat,name);
+          const detail=tkey?traitMap[tkey]:null;
+          if(detail){
+            e[cat]=`${name} (${detail.Supply||'?'})`;
+            if(isIp(detail['IP Risk'])) e.hasIpRisk=true;
+            if(detail.tags) Object.entries(detail.tags).forEach(([t,s])=>{
+              famSc[t]=(famSc[t]||0)+(typeof s==='number'?s:parseFloat(s)||0);
+            });
+          } else { e[cat]=name; }
+        });
+        const maxS=Math.max(0,...Object.values(famSc));
+        e.dominantFamilies=maxS>0?Object.entries(famSc).filter(([,s])=>s===maxS).map(([f])=>f):['None'];
+        const sd=scoresMap[n.ID];
+        e.diScore=sd?.diScore||0;
+        e.displayMultiple=sd?.displayMultiple??null;
+        // Diagnostic: warn if any NFT is missing a floor multiple
+        if(!sd || sd.displayMultiple==null || sd.displayMultiple==='null' || sd.displayMultiple==='') {
+          console.warn(`[Missing multiple] Bro #${n.ID} — scoresMap entry:`, sd);
+        }
+        return e;
+      });
+      tmp.sort((a,b)=>b.diScore-a.diScore);
+      tmp.forEach((nft,i)=>{
+        nft.rank=i+1;
+        nft.idStr=String(nft.ID);             // pre-stringify for fast search
+        nft.famSet=new Set(nft.dominantFamilies); // pre-build Set for fast family lookup
+        nft.sales=salesMap[nft.idStr]||[];    // attach sales history
+        // Rewrite raw GitHub image URLs → jsDelivr CDN (globally cached, no rate limiting)
+        if(nft.Image && typeof nft.Image==='string' && nft.Image.includes('raw.githubusercontent.com'))
+          nft.Image = nft.Image.replace('https://raw.githubusercontent.com/','https://cdn.jsdelivr.net/gh/');
+      });
+      res(tmp);
+    },
+    error:err=>rej(new Error(err.message))
+  }));
+  return {nfts,traitMap,salesMap};
+}
+
+/* ════════════════════════════════════
+   SVG ICONS (inline, tiny)
+════════════════════════════════════ */
+const I = {
+  search: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>,
+  x:      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>,
+  filter: <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="7" y1="12" x2="17" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/></svg>,
+  chev:   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>,
+  sidebar:<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/></svg>,
+  book:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25"/></svg>,
+  warn:   <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#78350f" strokeWidth="2.5" strokeLinecap="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>,
+  none:   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"><circle cx="12" cy="12" r="9"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>,
+  check:  <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round"><polyline points="1.5,6 4.5,9.5 10.5,2"/></svg>,
+  wallet: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 12V8a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h14a2 2 0 002-2v-4"/><path d="M18 12h.01"/><circle cx="18" cy="12" r="2"/></svg>,
+  calc:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="10" y2="10"/><line x1="14" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="10" y2="14"/><line x1="14" y1="14" x2="16" y2="14"/><line x1="8" y1="18" x2="16" y2="18"/></svg>,
+  trophy: <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M6 9H3V4h3M18 9h3V4h-3M9 21h6M12 17v4"/><path d="M6 4h12v8a6 6 0 0 1-12 0V4z"/></svg>,
+  chart:  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>,
+  build:  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>,
+  share:  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>,
+  compare:<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="18" rx="1"/></svg>,
+  link:   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>,
+  dl:     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>,
+  clock:  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
+  eye:    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>,
+  feed:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1" fill="currentColor"/></svg>,
+  sort:   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>,
+};
+
+/* ════════════════════════════════════
+   WALLET FETCH — auto-paginate all pages
+════════════════════════════════════ */
+const CONTRACT = '0xEAB71F90235E6b885C05aFFF3BAF0E41244cf874';
+const EXPLORER = 'https://explorer.hemi.xyz';
+
+async function fetchWalletNFTs(walletAddress, onProgress) {
+  const ids = new Set();
+  let pageParams = null;
+  let pageNum = 0;
+
+  while (true) {
+    pageNum++;
+    let url = `${EXPLORER}/api/v2/tokens/${CONTRACT}/instances?holder_address_hash=${walletAddress}&page_size=50`;
+    if (pageParams) url += `&${new URLSearchParams(pageParams).toString()}`;
+
+    onProgress(`Fetching page ${pageNum}…`);
+    const res = await fetch(url);
+    if (!res.ok) {
+      // Try alternate Blockscout API path
+      const alt = `${EXPLORER}/api/v2/tokens/${CONTRACT}/token-holders?page_size=50`;
+      throw new Error(`Explorer API returned ${res.status}. Check wallet address.`);
+    }
+    const json = await res.json();
+
+    // Extract token IDs from items array
+    const items = json.items || json.data || [];
+    items.forEach(item => {
+      const id = item.id ?? item.token_id ?? item.metadata?.id;
+      if (id != null) ids.add(String(id));
+    });
+
+    // Blockscout pagination: next_page_params object
+    const next = json.next_page_params;
+    if (!next || Object.keys(next).length === 0 || items.length === 0) break;
+    pageParams = next;
+
+    // Safety cap — shouldn't need >200 pages for a collection this size
+    if (pageNum >= 200) break;
+  }
+
+  return [...ids];
+}
+
+/* ════════════════════════════════════
+   GRID WITH INFINITE SCROLL
+════════════════════════════════════ */
+const PAGE = 60;
+console.log("constants ok");
+</script></body></html>
