@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html><head>
+<script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head><body><div id="root"><div id="err" style="color:red;padding:20px;font-family:monospace;font-size:12px">Loading...</div></div>
+<script>
+window.onerror=function(m,s,l,c,e){document.getElementById("err").textContent=m+"
+line:"+l+" col:"+c;return false;};
+</script>
+<script type="text/babel">
+const {useState,useEffect,useMemo,useRef,useCallback,useDeferredValue,useTransition,startTransition}=React;
+const CONTRACT='';const BASE='';const CDN='';const FLOOR_ETH=0.005;const FLOOR_LO=0.004;const FLOOR_HI=0.013;const FLOOR_MID=0.0085;
+const CATS=['Bro Type','Headwear','Clothes','Eyes','Eyewear','Mouth Items'];
+const FEATURES={watchlist:true,priceEstimate:true,ipFilter:true,compareMode:true,walletConnect:true,portfolio:true,offerFeed:true,deepLinks:true,ethPrice:true};
+const AppCtx=React.createContext(null);const useApp=()=>React.useContext(AppCtx);
+const FAM_COLORS={};const CAT_COLORS={};const DI_TIERS=[];
+function getRarityTier(s){return 'Common';}
+function diScoreToRange(s){return '1x';}
+
+    // Corner decorations
+    const drawCorner = (x,y,flip)=>{
+      ctx.save();ctx.translate(x,y);if(flip)ctx.scale(-1,-1);
+      ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(30,0);ctx.moveTo(0,0);ctx.lineTo(0,30);
+      ctx.strokeStyle=accentColor+'99';ctx.lineWidth=2;ctx.stroke();ctx.restore();
+    };
+    drawCorner(8,8,false);drawCorner(W-8,H-8,true);
+
+    // Load and draw NFT image
+    const img = new Image();
+    img.crossOrigin='anonymous';
+    img.onload=()=>{
+      // Image centered, large
+      const iSize=220;
+      ctx.save();
+      ctx.beginPath();
+      const ix=(W-iSize)/2, iy=40;
+      ctx.roundRect(ix,iy,iSize,iSize,12);
+      ctx.clip();
+      ctx.drawImage(img,ix,iy,iSize,iSize);
+      ctx.restore();
+
+      // Family color bar under image
+      ctx.fillStyle=famColor+'66';
+      ctx.fillRect((W-iSize)/2,iy+iSize-4,iSize,4);
+
+      // ID
+      ctx.fillStyle='#e8eaf8';
+      ctx.font='bold 28px "Space Mono", monospace';
+      ctx.textAlign='center';
+      ctx.fillText(`#${nft.ID}`,W/2,290);
+
+      // Score
+      ctx.fillStyle=accentColor;
+      ctx.font='bold 42px "Space Mono", monospace';
+      ctx.fillText(fmtScore(nft),W/2,340);
+
+      // Rarity
+      if(rarity){
+        ctx.fillStyle=accentColor+'33';
+        const rx=W/2-50,ry=350,rw=100,rh=22;
+        ctx.beginPath();ctx.roundRect(rx,ry,rw,rh,11);ctx.fill();
+        ctx.fillStyle=accentColor;
+        ctx.font='bold 11px sans-serif';
+        ctx.fillText(rarity.tier.toUpperCase(),W/2,365);
+      }
+
+      // Branding
+      ctx.fillStyle='#4d5580';
+      ctx.font='11px sans-serif';
+      ctx.fillText('HEMI BROS · Rarity Checker',W/2,392);
+    };
+    img.onerror=()=>{
+      // Fallback without image
+      ctx.fillStyle='#e8eaf8';ctx.font='bold 60px "VT323"';ctx.textAlign='center';
+      ctx.fillText(`#${nft.ID}`,W/2,180);
+      ctx.fillStyle=accentColor;ctx.font='bold 48px monospace';
+      ctx.fillText(fmtScore(nft),W/2,250);
+    };
+    img.src=nft.Image;
+  },[nft]);
+
+  const download = () => {
+    const canvas = canvasRef.current;
+    if(!canvas) return;
+    const a = document.createElement('a');
+    a.download=`hemi-bro-${nft.ID}.png`;
+    a.href=canvas.toDataURL('image/png');
+    a.click();
+  };
+
+  const copyLink = () => {
+    const url = `${window.location.href.split('?')[0]}?id=${nft.ID}`;
+    navigator.clipboard.writeText(url).then(()=>{
+      setCopied(true);
+      setTimeout(()=>setCopied(false),2000);
+    });
+  };
+
+  return(
+    <div className="share-mbd" onClick={onClose}>
+      <div className="share-mbox" onClick={e=>e.stopPropagation()}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 16px 0'}}>
+          <span style={{fontSize:13,fontWeight:700,color:'var(--txt)'}}>Share Bro #{nft.ID}</span>
+          <button className="mclose" style={{position:'static'}} onClick={onClose}>{I.x}</button>
+        </div>
+        <div className="share-canvas-wrap">
+          <canvas ref={canvasRef} style={{maxWidth:'100%',borderRadius:8}}/>
+        </div>
+        <div className="share-actions">
+          <button className="share-dl-btn" onClick={download}>{I.dl} Download PNG</button>
+          <button className="share-copy-btn" onClick={copyLink} style={{color:copied?'var(--green)':'var(--txt2)'}}>
+            {copied?<>{I.check} Copied!</>:<>{I.link} Copy Link</>}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+/* ════════════════════════════════════
+   GLOBAL OFFER FEED
+════════════════════════════════════ */
+const OfferFeed = ({nfts, onSelectNft}) => {
+  const [offers, setOffers]   = useState([]);
+  const [loading,setLoading]  = useState(true);
+
+  const load = useCallback(()=>{
+    setLoading(true);
+    supa.select('offers','limit=30')
+      .then(d=>{ setOffers(d||[]); setLoading(false); })
+      .catch(()=>{ setOffers([]); setLoading(false); });
+  },[]);
+
+  useEffect(()=>{ load(); },[]);
+
+  const nftById = useMemo(()=>{
+    const m={};
+    nfts.forEach(n=>m[String(n.ID)]=n);
+    return m;
+  },[nfts]);
+
+  const shortAddr = a => a?`${a.slice(0,6)}…${a.slice(-4)}`:'';
+  const fmtTime = ts=>{
+    try{
+      const diff = Date.now()-new Date(ts).getTime();
+      if(diff<60000) return 'just now';
+      if(diff<3600000) return `${Math.floor(diff/60000)}m ago`;
+      if(diff<86400000) return `${Math.floor(diff/3600000)}h ago`;
+      return new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+    }catch{return '';}
+  };
+
+  return(
+    <div className="feed-wrap">
+      <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:4}}>
+        <div style={{fontSize:10,fontWeight:800,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--txt3)'}}>Live Offers</div>
+        <button className="feed-refresh" onClick={load}>↻ Refresh</button>
+      </div>
+      {loading
+        ? <div className="feed-empty">Loading…</div>
+        : offers.length===0
+          ? <div className="feed-empty">No offers yet. Be the first to make one!</div>
+          : offers.map(o=>{
+              const nft = nftById[String(o.nft_id)];
+              return(
+                <div key={o.id} className="feed-item" onClick={()=>nft&&onSelectNft(nft)}>
+                  {nft&&<img className="feed-img" src={nft.Image} alt={`#${o.nft_id}`} loading="lazy"/>}
+                  <div className="feed-info">
+                    <div className="feed-top">
+                      <span className="feed-nft">Bro #{o.nft_id}</span>
+                      <span className="feed-amount">Ξ {parseFloat(o.offer_amount).toFixed(3)}</span>
+                    </div>
+                    <div style={{display:'flex',gap:8,alignItems:'center'}}>
+                      <span className="feed-addr">{shortAddr(o.wallet_address)}</span>
+                      <span className="feed-time">{I.clock} {fmtTime(o.created_at)}</span>
+                    </div>
+                    {o.message&&<div className="feed-msg">"{o.message}"</div>}
+                  </div>
+                </div>
+              );
+            })
+      }
+    </div>
+  );
+};
+
+/* ════════════════════════════════════
+   COMPARE MODAL
+════════════════════════════════════ */
+const CompareModal = ({nfts: compareBros, traitMap, onClose, onSelect}) => {
+  if(!compareBros.length) return null;
+  const rows = [
+    {label:'Score',    fn: n=>fmtScore(n), sort:n=>n.diScore},
+    {label:'Rank',     fn: n=>`#${n.rank}`, sort:n=>-n.rank},
+    {label:'Rarity',   fn: n=>{ const r=getRarityTier(n.diScore); return r?r.tier:'Common'; }, sort:n=>n.diScore},
+    {label:'Family',   fn: n=>n.dominantFamilies[0]||'—', sort:null},
+    ...CATS.map(cat=>({label:cat, fn:n=>{const v=n[cat]||'—';return String(v).split('(')[0].trim();}, sort:null})),
+  ];
+  const bestIdx = compareBros.reduce((bi,n,i)=>n.diScore>compareBros[bi].diScore?i:bi,0);
+
+  return(
+    <div className="cmp-mbd">
+      <div className="cmp-hd">
+        <div className="cmp-title">COMPARE BROS</div>
+        <button className="mclose" style={{position:'static'}} onClick={onClose}>{I.x}</button>
+      </div>
+      <div className="cmp-body">
+        <table className="cmp-table">
+          <thead>
+            <tr>
+              <th style={{textAlign:'left'}}>Trait</th>
+              {compareBros.map((n,i)=>(
+                <th key={n.ID} className="hero-col">
+                  <div className="cmp-nft-col">
+                    <img className="cmp-nft-img" src={n.Image} alt={`#${n.ID}`}/>
+                    <div className="cmp-nft-id" style={{cursor:'pointer'}} onClick={()=>{onSelect(n);onClose();}}>{`#${n.ID}`}</div>
+                    <div className="cmp-nft-score">{fmtScore(n)}</div>
+                    {i===bestIdx&&<span style={{fontSize:9,fontWeight:800,color:'var(--gold)',letterSpacing:'.1em'}}>BEST</span>}
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(row=>(
+              <tr key={row.label}>
+                <td className="row-label">{row.label}</td>
+                {compareBros.map((n,i)=>{
+                  const val = row.fn(n);
+                  const isBest = row.sort && i===compareBros.reduce((bi,x,xi)=>row.sort(x)>row.sort(compareBros[bi])?xi:bi,0);
+                  return <td key={n.ID} className={isBest?'best':''}>{val}</td>;
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+/* ════════════════════════════════════
+   SIMILAR BROS (used inside Modal)
+════════════════════════════════════ */
+const SimilarBros = ({nft, nfts, traitMap, onSelect}) => {
+  const {similar, rareCombo} = useMemo(()=>{
+    if(!nft||!nfts.length) return {similar:[],rareCombo:[]};
+
+    const similar = nfts
+      .filter(n=>n.ID!==nft.ID)
+      .map(n=>{
+        let score=0; const sharedCats=[];
+        CATS.forEach(cat=>{ if(n[cat]&&n[cat]===nft[cat]){score++;sharedCats.push(cat);} });
+        return {nft:n,score,sharedCats};
+      })
+      .filter(x=>x.score>0)
+      .sort((a,b)=>b.score-a.score||b.nft.diScore-a.nft.diScore)
+      .slice(0,8);
+
+    // Rare trait co-occurrence: which pairs on this Bro are hardest to find together
+    const thisCats = CATS.filter(cat=>{
+      const v=nft[cat]; if(!v) return false;
+      return String(v).split('(')[0].trim().toLowerCase()!=='none';
+    });
+    const combos = [];
+    for(let i=0;i<thisCats.length;i++){
+      for(let j=i+1;j<thisCats.length;j++){
+        const catA=thisCats[i], catB=thisCats[j];
+        const valA=nft[catA], valB=nft[catB]; if(!valA||!valB) continue;
+        const nameA=String(valA).split('(')[0].trim();
+        const nameB=String(valB).split('(')[0].trim();
+        const scoreA=traitMap[tk(catA,nameA)]?.adjustedScore||0;
+        const scoreB=traitMap[tk(catB,nameB)]?.adjustedScore||0;
+        if(scoreA<10&&scoreB<10) continue; // skip all-common combos
+        const count = nfts.filter(n=>n[catA]===valA&&n[catB]===valB).length;
+        combos.push({catA,catB,nameA,nameB,count,scoreA,scoreB});
+      }
+    }
+    combos.sort((a,b)=>a.count-b.count||(b.scoreA+b.scoreB)-(a.scoreA+a.scoreB));
+    return {similar, rareCombo:combos.slice(0,3)};
+  },[nft,nfts,traitMap]);
+
+  return(
+    <div style={{marginTop:8,display:'flex',flexDirection:'column',gap:16}}>
+      {rareCombo.length>0&&(
+        <div>
+          <div style={{fontSize:10,fontWeight:800,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--txt3)',marginBottom:6}}>Rare Trait Combos</div>
+          <div style={{display:'flex',flexDirection:'column',gap:5}}>
+            {rareCombo.map(({nameA,nameB,count,catA,catB,scoreA,scoreB})=>{
+              const rA=getRarityTier(scoreA), rB=getRarityTier(scoreB);
+              return(
+                <div key={`${nameA}-${nameB}`} style={{
+                  display:'flex',alignItems:'center',justifyContent:'space-between',
+                  padding:'6px 10px',background:'var(--ink3)',borderRadius:8,border:'1px solid var(--line)'
+                }}>
+                  <div style={{fontSize:12,minWidth:0,overflow:'hidden',textOverflow:'ellipsis',whiteSpace:'nowrap',marginRight:8}}>
+                    <span style={{color:rA?rA.color:'var(--txt)',fontWeight:700}}>{nameA}</span>
+                    <span style={{color:'var(--txt3)',margin:'0 4px'}}>+</span>
+                    <span style={{color:rB?rB.color:'var(--txt)',fontWeight:700}}>{nameB}</span>
+                  </div>
+                  <div style={{fontFamily:'Space Mono,monospace',fontSize:'.75rem',color:count<=3?'var(--r-grail)':count<=10?'var(--r-legendary)':'var(--txt3)',flexShrink:0}}>
+                    ×{count}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+      {similar.length>0&&(
+        <div>
+          <div style={{fontSize:10,fontWeight:800,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--txt3)',marginBottom:6}}>Similar Bros</div>
+          <div className="similar-row">
+            {similar.map(({nft:s,score,sharedCats})=>(
+              <div key={s.ID} className="similar-card" onClick={()=>onSelect(s)}
+                title={`${score} shared: ${sharedCats.join(', ')}`}>
+                <img src={s.Image} alt={`#${s.ID}`} loading="lazy"/>
+                <div className="similar-card-score">{fmtScore(s)}</div>
+                <div style={{fontSize:9,color:'var(--txt3)',textAlign:'center',marginTop:1}}>{score} shared</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+      {!similar.length&&!rareCombo.length&&(
+        <p style={{color:'var(--txt2)',fontSize:13,padding:'18px 0'}}>No similar Bros found.</p>
+      )}
+    </div>
+  );
+};
+
+/* ════════════════════════════════════
+   TRAIT CO-OCCURRENCE EXPLORER
+════════════════════════════════════ */
+const Toast = ({msg, show}) => (
+  <div className={`toast ${show?'show':''}`}>{msg}</div>
+);
+
+/* ════════════════════════════════════
+   APP
+════════════════════════════════════ */
+/* ════════════════════════════════════
+   CUSTOM HOOKS
+════════════════════════════════════ */
+
+/* All gallery filter/sort state in one place.
+   Import via useApp() ctx or pass down once. */
+const useGalleryState = (nfts, traitMap) => {
+  const [search,        setSearch]        = useState('');
+  const [filters,       setFilters]       = useState({traits:{},families:[]});
+  const [sortKey,       setSortKey]       = useState('score_desc');
+  const [scoreMin,      setScoreMin]      = useState('');
+  const [scoreMax,      setScoreMax]      = useState('');
+  const [rarityFilter,  setRarityFilter]  = useState([]);
+  const [hideIp,        setHideIp]        = useState(false);
+  const [walletFilter,  setWalletFilter]  = useState(false);
+  const [ownedIds,      setOwnedIds]      = useState([]);
+  const debouncedSearch = useDebounce(search, 80);
+
+  const filtered = useMemo(()=>{
+    if(!nfts.length) return [];
+    const q = debouncedSearch.trim();
+    const ownedSet = walletFilter && ownedIds.length > 0 ? new Set(ownedIds) : null;
+    const famLen   = filters.families.length;
+    const traitEntries = Object.entries(filters.traits);
+    const traitLen = traitEntries.length;
+    const sMin = scoreMin!==''?parseFloat(scoreMin):null;
+    const sMax = scoreMax!==''?parseFloat(scoreMax):null;
+    const rarSet = rarityFilter.length>0 ? new Set(rarityFilter) : null;
+
+    let result = nfts.filter(nft=>{
+      if(ownedSet && !ownedSet.has(nft.idStr)) return false;
+      if(q){
+        const ql = q.toLowerCase();
+        const idMatch = nft.idStr.startsWith(q);
+        const traitMatch = !idMatch && CATS.some(cat=>{
+          const v = nft[cat]; if(!v) return false;
+          return String(v).split('(')[0].trim().toLowerCase().includes(ql);
+        });
+        if(!idMatch && !traitMatch) return false;
+      }
+      if(hideIp && nft.hasIpRisk) return false;
+      if(famLen > 0) {
+        let ok = false;
+        for(let i=0;i<famLen;i++) if(nft.famSet.has(filters.families[i])){ ok=true; break; }
+        if(!ok) return false;
+      }
+      for(let i=0;i<traitLen;i++){
+        const [cat,vals]=traitEntries[i];
+        if(!Array.isArray(vals)||vals.length===0) continue;
+        if(!vals.includes(nft[cat])) return false;
+      }
+      if(sMin!==null && nft.diScore<sMin) return false;
+      if(sMax!==null && nft.diScore>sMax) return false;
+      if(rarSet){
+        let traitMatch = false;
+        for(const cat of CATS){
+          const val = nft[cat]; if(!val) continue;
+          const name = String(val).split('(')[0].trim();
+          const detail = traitMap[tk(cat,name)];
+          const r = detail ? getRarityTier(detail.adjustedScore||0) : null;
+          const tierName = r ? r.tier : 'Common';
+          if(rarSet.has(tierName)){ traitMatch=true; break; }
+        }
+        if(!traitMatch) return false;
+      }
+      return true;
+    });
+
+    switch(sortKey){
+      case 'score_asc':  result.sort((a,b)=>a.diScore-b.diScore); break;
+      case 'id_asc':     result.sort((a,b)=>Number(a.ID)-Number(b.ID)); break;
+      case 'id_desc':    result.sort((a,b)=>Number(b.ID)-Number(a.ID)); break;
+      case 'rarest':{
+        const topTrait = n => Math.max(0,...CATS.map(cat=>{
+          const v=n[cat]; if(!v) return 0;
+          return traitMap[tk(cat,String(v).split('(')[0].trim())]?.adjustedScore||0;
+        }));
+        result.sort((a,b)=>topTrait(b)-topTrait(a)); break;
+      }
+      case 'common':{
+        const topTraitC = n => Math.max(0,...CATS.map(cat=>{
+          const v=n[cat]; if(!v) return 0;
+          return traitMap[tk(cat,String(v).split('(')[0].trim())]?.adjustedScore||0;
+        }));
+        result.sort((a,b)=>topTraitC(a)-topTraitC(b)); break;
+      }
+      default: break;
+    }
+    return result;
+  },[nfts, debouncedSearch, filters, walletFilter, ownedIds, sortKey, scoreMin, scoreMax, rarityFilter, hideIp, traitMap]);
+
+  const traitOpts = useMemo(()=>{
+    const o={};
+    CATS.forEach(cat=>{
+      const s=new Set();
+      nfts.forEach(n=>{const v=n[cat];if(v) s.add(v);});
+      o[cat]=[...s].sort((a,b)=>{
+        const aNone=a.split('(')[0].trim().toLowerCase()==='none';
+        const bNone=b.split('(')[0].trim().toLowerCase()==='none';
+        if(aNone&&!bNone) return 1; if(!aNone&&bNone) return -1;
+        return a.localeCompare(b);
+      });
+    });
+    return o;
+  },[nfts]);
+
+  const facetedCounts = useMemo(()=>{
+    const fc={}; CATS.forEach(cat=>fc[cat]={});
+    const q = debouncedSearch.trim();
+    const famLen = filters.families.length;
+    const traitEntries = Object.entries(filters.traits);
+    const ownedSet = walletFilter && ownedIds.length > 0 ? new Set(ownedIds) : null;
+    const sMin = scoreMin!==''?parseFloat(scoreMin):null;
+    const sMax = scoreMax!==''?parseFloat(scoreMax):null;
+    const rarSet = rarityFilter.length>0 ? new Set(rarityFilter) : null;
+    nfts.forEach(nft=>{
+      if(ownedSet && !ownedSet.has(nft.idStr)) return;
+      if(q){
+        const ql=q.toLowerCase();
+        const idMatch=nft.idStr.startsWith(q);
+        const traitMatch=!idMatch&&CATS.some(cat=>{const v=nft[cat];if(!v)return false;return String(v).split('(')[0].trim().toLowerCase().includes(ql);});
+        if(!idMatch&&!traitMatch) return;
+      }
+      if(hideIp&&nft.hasIpRisk) return;
+      if(famLen>0){let ok=false;for(let i=0;i<famLen;i++)if(nft.famSet.has(filters.families[i])){ok=true;break;}if(!ok)return;}
+      if(sMin!==null&&nft.diScore<sMin) return;
+      if(sMax!==null&&nft.diScore>sMax) return;
+      if(rarSet){
+        let tm=false;
+        for(const cat of CATS){const val=nft[cat];if(!val)continue;const name=String(val).split('(')[0].trim();const detail=traitMap[tk(cat,name)];const r=detail?getRarityTier(detail.adjustedScore||0):null;if(rarSet.has(r?r.tier:'Common')){tm=true;break;}}
+        if(!tm) return;
+      }
+      CATS.forEach(cat=>{
+        const v=nft[cat]; if(!v) return;
+        for(let i=0;i<traitEntries.length;i++){
+          const [c,vals]=traitEntries[i];
+          if(c===cat) continue;
+          if(!Array.isArray(vals)||vals.length===0) continue;
+          if(!vals.includes(nft[c])) return;
+        }
+        fc[cat][v]=(fc[cat][v]||0)+1;
+      });
+    });
+    return fc;
+  },[nfts, filters, debouncedSearch, walletFilter, ownedIds, hideIp, scoreMin, scoreMax, rarityFilter, traitMap]);
+
+  const famCounts = useMemo(()=>{
+    const fc={};
+    nfts.forEach(n=>n.famSet.forEach(f=>{fc[f]=(fc[f]||0)+1;}));
+    return fc;
+  },[nfts]);
+
+  const activeCount = Object.values(filters.traits).reduce((s,v)=>s+(Array.isArray(v)?v.length:1),0)
+    +filters.families.length+(walletFilter?1:0)+(rarityFilter.length>0?1:0)+(hideIp?1:0)+((scoreMin||scoreMax)?1:0);
+  const totalActive = activeCount+(search?1:0);
+
+  const ownedNfts = useMemo(()=>{
+    if(!ownedIds.length) return [];
+    const s=new Set(ownedIds);
+    return nfts.filter(n=>s.has(n.idStr));
+  },[nfts, ownedIds]);
+
+  const clearAll = useCallback(()=>{
+    setFilters({traits:{},families:[]});setSearch('');setWalletFilter(false);
+    setRarityFilter([]);setScoreMin('');setScoreMax('');setHideIp(false);
+  },[]);
+  const rmTrait = useCallback(cat=>setFilters(f=>{const t={...f.traits};delete t[cat];return {...f,traits:t};}),[]);
+  const rmFam   = useCallback(fam=>setFilters(f=>({...f,families:f.families.filter(x=>x!==fam)})),[]);
+
+  return {
+    search, setSearch, filters, setFilters, sortKey, setSortKey,
+    scoreMin, setScoreMin, scoreMax, setScoreMax,
+    rarityFilter, setRarityFilter, hideIp, setHideIp,
+    walletFilter, setWalletFilter, ownedIds, setOwnedIds,
+    filtered, traitOpts, facetedCounts, famCounts,
+    activeCount, totalActive, ownedNfts, clearAll, rmTrait, rmFam,
+  };
+};
+
+/* ════════════════════════════════════
+   VIEW REGISTRY
+   Add a new view by adding one entry.
+   No conditionals needed in App.
+════════════════════════════════════ */
+const GalleryView = ({gs, nfts, traitMap, onCardClick, isWatched, toggleWatch, sidebar, setSidebar, setSheet, openCat, setOpenCat}) => {
+  const {filtered, filters, rarityFilter, scoreMin, scoreMax, walletFilter, ownedIds,
+         search, setSearch, setFilters, setRarityFilter, setScoreMin, setScoreMax, setHideIp,
+         hideIp, activeCount, totalActive, clearAll, rmTrait, rmFam,
+         traitOpts, facetedCounts, famCounts, ownedNfts} = gs;
+
+  // openCat is set by home screen chip clicks — FilterContent auto-expands the category
+
+  if(filtered.length===0) return (
+    <div className="grid-scroll"><div className="state-box">
+      <div className="big">NO RESULTS</div>
+      {(()=>{
+        const activeTraits=Object.entries(filters.traits).filter(([,v])=>Array.isArray(v)&&v.length>0);
+        const hints=[];
+        if(activeTraits.length>=2) hints.push('These trait combinations may not exist together on any Bro.');
+        if(rarityFilter.length>0&&activeTraits.length>0) hints.push('The selected rarity tier may conflict with the chosen traits.');
+        if((scoreMin||scoreMax)&&activeTraits.length>0) hints.push('The score range may exclude all Bros with these traits.');
+        if(walletFilter) hints.push('Your wallet Bros may not match the active filters.');
+        return hints.length>0?<div style={{fontSize:12,color:'var(--txt3)',maxWidth:280,textAlign:'center',lineHeight:1.6}}>{hints[0]}</div>:<div style={{fontSize:13}}>Try removing some filters.</div>;
+      })()}
+      <div style={{display:'flex',gap:6,flexWrap:'wrap',justifyContent:'center',marginTop:8}}>
+        {Object.keys(filters.traits).length>0&&<button style={{background:'none',border:'1.5px solid var(--line)',borderRadius:8,padding:'6px 14px',color:'var(--txt2)',fontSize:12,fontWeight:600,cursor:'pointer'}} onClick={()=>setFilters({traits:{},families:[]})}>Clear traits</button>}
+        {(rarityFilter.length>0||(scoreMin||scoreMax))&&<button style={{background:'none',border:'1.5px solid var(--line)',borderRadius:8,padding:'6px 14px',color:'var(--txt2)',fontSize:12,fontWeight:600,cursor:'pointer'}} onClick={()=>{setRarityFilter([]);setScoreMin('');setScoreMax('');}}>Clear score filters</button>}
+        <button style={{background:'none',border:'1.5px solid var(--pop)',borderRadius:8,padding:'6px 14px',color:'var(--pop)',fontSize:12,fontWeight:600,cursor:'pointer'}} onClick={clearAll}>Clear all</button>
+      </div>
+    </div></div>
+  );
+  return <FlatGrid items={filtered} onCardClick={onCardClick} isWatchedFn={isWatched} onToggleWatch={toggleWatch}/>;
+};
+
+const WatchlistView = ({nfts, watchlist, isWatched, toggleWatch, onCardClick}) => {
+  const items = useMemo(()=>nfts.filter(n=>watchlist.has(n.ID)),[nfts,watchlist]);
+  if(watchlist.size===0) return(
+    <div className="grid-scroll"><div className="state-box">
+      <div style={{fontSize:'2.5rem',lineHeight:1}}>☆</div>
+      <div className="big" style={{fontSize:'1.4rem'}}>No Watchlist Yet</div>
+      <div style={{fontSize:12,color:'var(--txt3)',maxWidth:240,textAlign:'center',lineHeight:1.6}}>Open any Bro's modal and tap ☆ Watch to add it.</div>
+    </div></div>
+  );
+  return(
+    <div className="grid-scroll">
+      <FlatGrid items={items} onCardClick={onCardClick} isWatchedFn={isWatched} onToggleWatch={toggleWatch}/>
+    </div>
+  );
+};
+
+const VIEW_REGISTRY = {
+  gallery:     {icon: null, label: 'Gallery',        showSearch: true,  showSort: true},
+  leaderboard: {icon: null, label: 'Top Bros',       showSearch: false, showSort: false},
+  stats:       {icon: null, label: 'Stats',          showSearch: false, showSort: false},
+  cooccurrence:     {icon: null, label: 'Co-occurrence',  showSearch: false, showSort: false},
+  holders:     {icon: null, label: 'Holders',        showSearch: false, showSort: false},
+  builder:     {icon: null, label: 'Builder',        showSearch: false, showSort: false},
+  feed:        {icon: null, label: 'Offers Feed',    showSearch: false, showSort: false},
+  watchlist:   {icon: null, label: 'Watchlist',      showSearch: false, showSort: false},
+  encyclopedia:{icon: null, label: 'Encyclopedia',   showSearch: true,  showSort: false},
+  home:        {icon: null, label: 'Home',           showSearch: false, showSort: false},
+};
+
+const NAV_VIEWS = [
+  {k:'gallery',     icon:'🖼',  label:'Gallery'},
+  {k:'leaderboard', icon:'🏆',  label:'Top Bros'},
+  {k:'stats',       icon:'📊',  label:'Stats'},
+  {k:'exchange',    icon:'💹',  label:'Exchange'},
+  {k:'cooccurrence',     icon:'🔗',  label:'Traits'},
+  {k:'holders',     icon:'👥',  label:'Holders'},
+  {k:'builder',     icon:'🔧',  label:'Builder'},
+  {k:'feed',        icon:'📋',  label:'Offers'},
+  ...(FEATURES.watchlist?[{k:'watchlist', icon:'★', label:'Watchlist'}]:[]),
+  {k:'encyclopedia',icon:'📖',  label:'Encyc'},
+];
+
+/* ════════════════════════════════════
+   GALLERY SIDEBAR
+   Defined as sections array — add a new
+   filter type by pushing to SIDEBAR_SECTIONS.
+════════════════════════════════════ */
+const SidebarSection = ({title, badge, children}) => (
+  <div className="acc-sec">
+    <div style={{padding:'10px 14px 4px',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+      <span style={{fontSize:10,fontWeight:800,letterSpacing:'.12em',textTransform:'uppercase',color:'var(--txt3)'}}>{title}</span>
+      {badge>0&&<span className="sel-badge">{badge}</span>}
+    </div>
+    {children}
+  </div>
+);
+
+const GallerySidebar = ({gs, traitMap, setSheet, nfts, openCat, setOpenCat}) => {
+  const {filters, setFilters, rarityFilter, setRarityFilter, scoreMin, setScoreMin,
+         scoreMax, setScoreMax, hideIp, setHideIp, walletFilter, setWalletFilter,
+         ownedIds, setOwnedIds, ownedNfts, activeCount, filtered,
+         traitOpts, facetedCounts, famCounts} = gs;
+
+  return (
+    <aside className={'sidebar'}>
+      <div className="sb-top">
+        <span className="sb-top-label">Filters</span>
+        {activeCount>0&&<button className="clear-btn" style={{fontSize:11,padding:'2px 5px'}} onClick={gs.clearAll}>Clear</button>}
+      </div>
+      <div className="sb-scroll">
+
+        {/* ── Wallet ── */}
+        {FEATURES.walletConnect&&<WalletSection ownedIds={ownedIds} setOwnedIds={setOwnedIds} walletFilter={walletFilter} setWalletFilter={setWalletFilter} nfts={nfts}/>}
+        {FEATURES.portfolio&&<PortfolioCalc ownedNfts={ownedNfts}/>}
+
+        {/* ── Quick Filters ── */}
+        <SidebarSection title="Quick Filters">
+          <div style={{padding:'0 10px 10px',display:'flex',flexDirection:'column',gap:4}}>
+            {[
+              {label:'🔴 Has Grail Trait',     tiers:['Grail']},
+              {label:'🟠 Has Legendary+ Trait', tiers:['Grail','Legendary']},
+              {label:'🟣 Has Epic+ Trait',      tiers:['Grail','Legendary','Epic']},
+              {label:'🟢 Has Rare+ Trait',      tiers:['Grail','Legendary','Epic','Rare']},
+            ].map(({label,tiers})=>{
+              const active=tiers.every(t=>rarityFilter.includes(t))&&rarityFilter.length===tiers.length;
+              return(
+                <button key={label} onClick={()=>setRarityFilter(active?[]:tiers)}
+                  style={{textAlign:'left',padding:'5px 9px',borderRadius:7,fontSize:11.5,fontWeight:600,
+                    background:active?'var(--pop-soft)':'var(--ink3)',
+                    border:`1.5px solid ${active?'var(--pop)':'var(--line)'}`,
+                    color:active?'var(--txt)':'var(--txt2)',cursor:'pointer',transition:'all .12s'
+                  }}>{label}</button>
+              );
+            })}
+          </div>
+        </SidebarSection>
+
+        {/* ── Score Range ── */}
+        <SidebarSection title="Score Range" badge={(scoreMin||scoreMax)?1:0}>
+          <div className="score-range-body">
+            <div className="score-range-row">
+              <input className="score-range-inp" placeholder="Min" value={scoreMin} onChange={e=>setScoreMin(e.target.value)} type="number"/>
+              <span className="score-range-sep">—</span>
+              <input className="score-range-inp" placeholder="Max" value={scoreMax} onChange={e=>setScoreMax(e.target.value)} type="number"/>
+            </div>
+            <div className="score-range-tiers">
+              {[{l:'Uncommon',min:10,max:24},{l:'Rare',min:25,max:44},{l:'Epic',min:45,max:149},{l:'Legendary',min:150,max:299},{l:'Grail',min:300,max:''}].map(({l,min,max})=>{
+                const RARITY_COLORS={Grail:'var(--r-grail)',Legendary:'var(--r-legendary)',Epic:'var(--r-epic)',Rare:'var(--r-rare)',Uncommon:'var(--r-uncommon)'};
+                return <button key={l} className="score-tier-btn" style={{color:RARITY_COLORS[l]||'var(--txt2)'}} onClick={()=>{setScoreMin(String(min));setScoreMax(max?String(max):'');}}>{l}</button>;
+              })}
+            </div>
+          </div>
+        </SidebarSection>
+
+        {/* ── IP Risk ── */}
+        {FEATURES.ipFilter&&(
+          <div className="acc-sec">
+            <div className="ip-toggle-row">
+              <span className="ip-toggle-label"><span className="ip-warn-icon">{I.warn}</span> Hide IP Risk Items</span>
+              <label className="toggle-switch">
+                <input type="checkbox" checked={hideIp} onChange={e=>setHideIp(e.target.checked)}/>
+                <div className="toggle-track"/><div className="toggle-knob"/>
+              </label>
+            </div>
+          </div>
+        )}
+
+        {/* ── Trait Filters ── */}
+        <FilterContent filters={filters} setFilters={setFilters} traitOpts={traitOpts} traitMap={traitMap} facetedCounts={facetedCounts} famCounts={famCounts} openCat={openCat} setOpenCat={setOpenCat}/>
+
+      </div>
+      <div style={{padding:'10px 14px',borderTop:'1px solid var(--line)',flexShrink:0,textAlign:'center'}}>
+        <span style={{fontFamily:'Space Mono,monospace',fontSize:'1rem',color:'var(--teal)'}}>{filtered.length}</span>
+        <span style={{fontSize:11,color:'var(--txt3)',marginLeft:5}}>result{filtered.length!==1?'s':''}</span>
+      </div>
+    </aside>
+  );
+};
+
+/* ════════════════════════════════════
+   GRAND EXCHANGE
+   Trait-level market analytics
+════════════════════════════════════ */
+// ── Sale Price Band Modal ──────────────────────────────────────────
+const SaleBandModal = ({sale, onClose}) => {
+  if(!sale) return null;
+  const {price, expectedLo, expectedHi, expectedMid, onTarget, nft, date} = sale;
+  const [pane, setPane] = React.useState('model'); // 'model' | 'sales'
+  const icon = onTarget?'✓':price>(expectedHi||0)?'↑':'↓';
+  const icol = onTarget?'var(--teal)':price>(expectedHi||0)?'var(--green)':'var(--red)';
+  const icolHex = onTarget?'#2dd4bf':price>(expectedHi||0)?'#4ade80':'#f87171';
+  const miss = expectedMid!=null ? price - expectedMid : null;
+  const pct  = expectedMid>0 ? (price - expectedMid)/expectedMid*100 : null;
+
+  // ── MODEL SVG Layout ────────────────────────────────────────────────
+  const W = 460, H = 220, PAD = 48;
+  const BAND_TOP = 120, BAND_H = 32, BAND_BOT = BAND_TOP + BAND_H;
+  const AXIS_Y   = BAND_BOT + 8;
+  const BRK_ZONE = BAND_TOP - 10;
+
+  const ceiling = Math.max(expectedHi * 1.3, price * 1.25, expectedHi + 0.005);
+  const trackW  = W - PAD * 2;
+  const toX     = v => PAD + (v / ceiling) * trackW;
+
+  const loX  = toX(expectedLo);
+  const hiX  = toX(expectedHi);
+  const midX = toX(expectedMid);
+  const prX  = toX(price);
+  const bandW = hiX - loX;
+
+  const brkY   = BRK_ZONE - 30;
+  const tickH  = 10;
+  const lblY   = brkY - 6;
+  const tooClose = Math.abs(prX - midX) < 50;
+
+  // ── SALES HISTORY SVG ───────────────────────────────────────────────
+  const allSales = React.useMemo(()=>{
+    if(!nft.sales) return [];
+    return [...nft.sales]
+      .map(s=>({...s, p:parseFloat(s.price)||0}))
+      .filter(s=>s.p>0)
+      .sort((a,b)=>new Date(a.date)-new Date(b.date));
+  },[nft.sales]);
+
+  const curIdx = allSales.findIndex(s=>Math.abs(s.p-price)<0.000001 && s.date===date);
+
+  const salesSvg = React.useMemo(()=>{
+    if(allSales.length < 1) return null;
+    const PW=460, PH=200, PPAD=52;
+    const prices = allSales.map(s=>s.p);
+    const sMin=Math.min(...prices), sMax=Math.max(...prices);
+    const sMid=(sMin+sMax)/2;
+    const pad = (sMax-sMin)*0.2 || 0.001;
+    const yLo=sMin-pad, yHi=sMax+pad, ySpan=yHi-yLo;
+    const xStep = allSales.length>1 ? (PW-PPAD*2)/(allSales.length-1) : 0;
+    const toY2 = v => PH-30 - ((v-yLo)/ySpan)*(PH-60);
+    const pts = allSales.map((s,i)=>({x:PPAD+(allSales.length>1?i*xStep:PW/2), y:toY2(s.p), s}));
+    const polyline = pts.map(p=>`${p.x},${p.y}`).join(' ');
+    const AXIS2 = PH-30;
+    return {PW,PH,PPAD,pts,polyline,AXIS2,toY2,sMin,sMax,sMid,yLo,yHi};
+  },[allSales]);
+
+  return (
+    <div onClick={onClose} style={{
+      position:'fixed',inset:0,zIndex:2000,background:'rgba(0,0,0,.88)',
+      display:'flex',alignItems:'center',justifyContent:'center',padding:12}}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:'#161825',border:'2px solid #2d2f48',borderRadius:16,
+        width:'100%',maxWidth:520,padding:'20px 22px 18px',position:'relative',
+        boxShadow:'0 24px 64px rgba(0,0,0,.75)',maxHeight:'90vh',overflowY:'auto'}}>
+
+        {/* ── Header row: NFT image + info + pane toggle + close ── */}
+        <div style={{display:'flex',alignItems:'flex-start',gap:12,marginBottom:14}}>
+          {/* NFT thumbnail */}
+          {nft.Image && (
+            <img src={nft.Image} alt={`#${nft.ID}`}
+              style={{width:52,height:52,borderRadius:8,objectFit:'cover',flexShrink:0,
+                border:'1.5px solid #2d2f48'}}
+              onError={e=>{e.target.style.display='none';}}/>
+          )}
+          {/* Title */}
+          <div style={{flex:1,minWidth:0}}>
+            <div style={{fontSize:15,fontWeight:800,color:'#f0f0f0',display:'flex',alignItems:'center',gap:6}}>
+              <span style={{fontSize:26,fontWeight:900,color:icolHex,lineHeight:1}}>{icon}</span>
+              Bro #{nft.ID}
+            </div>
+            <div style={{fontSize:12,fontWeight:700,color:'#ddd',marginTop:2,display:'flex',alignItems:'center',gap:4}}>
+              <span style={{fontWeight:400,color:'#888'}}>Sold for</span>&nbsp;{price.toFixed(4)}<EthIcon size={12}/>
+            </div>
+            <div style={{fontSize:10,color:'#777',marginTop:2}}>
+              {date||'—'}&nbsp;·&nbsp;DI {nft.diScore.toFixed(1)}
+              {pct!=null&&(
+                <span style={{marginLeft:8,fontWeight:800,color:icolHex}}>
+                  {pct>0?'+':''}{pct.toFixed(1)}% vs mid
+                </span>
+              )}
+            </div>
+          </div>
+          {/* Pane toggle + close */}
+          <div style={{display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6,flexShrink:0}}>
+            <button onClick={onClose} style={{background:'none',border:'none',color:'#666',
+              fontSize:20,cursor:'pointer',lineHeight:1,padding:0}}>✕</button>
+            {allSales.length>=1&&(
+              <div style={{display:'flex',border:'1px solid #2d2f48',borderRadius:8,overflow:'hidden',marginTop:4}}>
+                {[['model','DI Model'],['sales','Sales Only']].map(([k,lbl])=>(
+                  <button key={k} onClick={()=>setPane(k)}
+                    style={{padding:'5px 10px',fontSize:9,fontWeight:800,letterSpacing:'.06em',
+                      textTransform:'uppercase',border:'none',cursor:'pointer',
+                      background:pane===k?icolHex:'#0f1120',
+                      color:pane===k?'#000':'#888',transition:'all .15s'}}>
+                    {lbl}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── DI MODEL PANE ── */}
+        {pane==='model'&&<>
+          {/* SVG band */}
+          <div style={{background:'#0f1120',borderRadius:12,padding:'6px 0 4px',marginBottom:14}}>
+            <svg width="100%" viewBox={`0 0 ${W} ${H}`} style={{display:'block',overflow:'visible'}}>
+console.log("parsed ok");
+</script></body></html>
