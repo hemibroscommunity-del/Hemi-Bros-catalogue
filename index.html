@@ -6771,7 +6771,6 @@ const MysteryBro = ({nfts, onReveal}) => {
 
   // ── Preload: pick random frames + 1 winner, load all images ───
   const startLoad = () => {
-    // Ensure we only use NFTs that have a valid Image property
     const validNfts = nfts.filter(n => n && n.Image);
     if(!validNfts.length || phase==='loading') return;
     
@@ -6781,7 +6780,7 @@ const MysteryBro = ({nfts, onReveal}) => {
     setPicked(null);
 
     const winner = validNfts[Math.floor(Math.random()*validNfts.length)];
-    const numDecoys = 25; // 25 decoys + 1 winner = 26 frames for a smooth ~1.5s spin
+    const numDecoys = 25; 
     const decoys = [];
     const pool = validNfts.filter(n=>n.ID!==winner.ID);
     
@@ -6789,34 +6788,55 @@ const MysteryBro = ({nfts, onReveal}) => {
       const i = Math.floor(Math.random()*pool.length);
       decoys.push(pool.splice(i,1)[0]);
     }
-    // If pool was very small, loop to fill the decoy array
     while(decoys.length < numDecoys && decoys.length > 0) {
       decoys.push(decoys[decoys.length % decoys.length]);
     }
 
-    const allFrames = [...decoys, winner]; // winner is always last
-
-    // Preload all images before allowing GO
+    const allFrames = [...decoys, winner];
     let loaded = 0;
     const total = allFrames.length;
-    
+    let isReady = false;
+
+    const setReady = () => {
+      if (isReady) return;
+      isReady = true;
+      setFrames(allFrames);
+      setPicked(winner);
+      setFrameIdx(0);
+      setPhase('ready');
+    };
+
     allFrames.forEach((n) => {
-      const img = new Image();
-      // Handle both load and error so we never get stuck on a broken image link
-      const onComplete = () => {
+      const src = buildImgSources(n.Image)[0] || n.Image;
+      if (!src) {
         loaded++;
-        setLoadPct(Math.round((loaded/total)*100));
-        if(loaded === total) {
-          setFrames(allFrames);
-          setPicked(winner);
-          setFrameIdx(0);
-          setPhase('ready');
+        if (loaded === total) setReady();
+        return;
+      }
+
+      const img = new Image();
+      let handled = false;
+      
+      const onComplete = () => {
+        if (handled) return;
+        handled = true;
+        loaded++;
+        if (!isReady) {
+          setLoadPct(Math.round((loaded/total)*100));
+          if (loaded === total) setReady();
         }
       };
+
       img.onload = onComplete;
       img.onerror = onComplete; 
-      img.src = buildImgSources(n.Image)[0] || n.Image;
+      img.src = src;
+
+      // Safety fallback 1: If an individual image hangs for > 1.5s, skip waiting for it
+      setTimeout(onComplete, 1500);
     });
+
+    // Safety fallback 2: If the whole process takes > 2.5s, force it to ready
+    setTimeout(setReady, 2500);
   };
 
   // ── GO: Smooth roulette spin ending on the final frame ──────────
@@ -6835,18 +6855,15 @@ const MysteryBro = ({nfts, onReveal}) => {
       setFrameIdx(tick);
       
       if(tick < maxTicks) {
-        // Easing curve: starts flipping fast (10ms) and smoothly slows down to ~260ms
         const progress = tick / maxTicks;
         const nextDelay = 10 + Math.pow(progress, 4) * 250;
         timerRef.current = setTimeout(step, nextDelay);
       } else {
-        // Reached the final frame (winner)
         setPhase('revealed');
         setTimeout(launchConfetti, 50);
       }
     };
     
-    // Kick off the first fast frame
     timerRef.current = setTimeout(step, 10);
   };
 
@@ -6875,6 +6892,16 @@ const MysteryBro = ({nfts, onReveal}) => {
   const tierColor = tierInfo ? tierInfo.color : 'var(--teal)';
   const pickedRange = picked ? diScoreToRange(picked.diScore) : null;
   const pickedMultLabel = pickedRange ? (pickedRange.lo===pickedRange.hi?`${pickedRange.lo}x`:`${pickedRange.lo}x–${pickedRange.hi}x`) : null;
+
+  // Handles falling back to CDN if GitHub raw fails during the spin
+  const handleImgError = (e, nft) => {
+    const cdnUrl = buildImgSources(nft.Image)[1];
+    if (cdnUrl && e.target.src !== cdnUrl) {
+      e.target.src = cdnUrl;
+    } else {
+      e.target.style.display = 'none';
+    }
+  };
 
   return (
     <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',
@@ -6922,6 +6949,7 @@ const MysteryBro = ({nfts, onReveal}) => {
           {isReady && currentBro && (
             <img src={buildImgSources(currentBro.Image)[0]||currentBro.Image}
               alt="preview"
+              onError={(e) => handleImgError(e, currentBro)}
               style={{width:'100%',height:'100%',objectFit:'cover',filter:'brightness(0.4) blur(1px)'}}/>
           )}
           {isReady && (
@@ -6936,6 +6964,7 @@ const MysteryBro = ({nfts, onReveal}) => {
             <img src={buildImgSources(currentBro.Image)[0]||currentBro.Image}
               key={frameIdx}
               alt={`#${currentBro.ID}`}
+              onError={(e) => handleImgError(e, currentBro)}
               style={{width:'100%',height:'100%',objectFit:'cover',
                 filter:'brightness(0.8) saturate(1.2)'}}/>
           )}
@@ -6944,6 +6973,7 @@ const MysteryBro = ({nfts, onReveal}) => {
           {isRevealed && currentBro && (
             <img src={buildImgSources(currentBro.Image)[0]||currentBro.Image}
               alt={`#${currentBro.ID}`}
+              onError={(e) => handleImgError(e, currentBro)}
               style={{width:'100%',height:'100%',objectFit:'cover',
                 filter:'none',transition:'filter .3s'}}/>
           )}
@@ -7044,7 +7074,6 @@ const MysteryBro = ({nfts, onReveal}) => {
     </div>
   );
 };
-
 /* ════════════════════════════════════
    APP
 ════════════════════════════════════ */
