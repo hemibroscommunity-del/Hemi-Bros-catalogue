@@ -1,4 +1,4 @@
-<!-- v=1774793833 -->
+<!-- v=1774791943 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -2190,7 +2190,7 @@ window.addEventListener('appinstalled', () => {
   window.dispatchEvent(new Event('pwaInstalled'));
 });
 
-})());
+})();
 </script>
 </head>
 <body>
@@ -6041,14 +6041,14 @@ const ShareCard = ({nft, onClose}) => {
         const ta=document.createElement('textarea');ta.value=url;
         ta.style.cssText='position:fixed;left:-9999px';
         document.body.appendChild(ta);ta.select();
-        try{document.execCommand('copy');onSuccess();}catch(e){}
+        try{document.execCommand('copy');onSuccess();}catch{}
         document.body.removeChild(ta);
       });
     } else {
       const ta=document.createElement('textarea');ta.value=url;
       ta.style.cssText='position:fixed;left:-9999px';
       document.body.appendChild(ta);ta.select();
-      try{document.execCommand('copy');onSuccess();}catch(e){}
+      try{document.execCommand('copy');onSuccess();}catch{}
       document.body.removeChild(ta);
     }
   };
@@ -6111,7 +6111,7 @@ class ShareCardBoundary extends React.Component {
                 <button onClick={()=>{
                   const url=window.location.origin+window.location.pathname+'?id='+(nft?.ID||'');
                   const ta=document.createElement('textarea');ta.value=url;ta.style.cssText='position:fixed;left:-9999px';
-                  document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch(e){}document.body.removeChild(ta);
+                  document.body.appendChild(ta);ta.select();try{document.execCommand('copy');}catch{}document.body.removeChild(ta);
                 }} style={{padding:'8px 18px',background:'var(--pop)',color:'#fff',border:'none',borderRadius:8,fontSize:12,fontWeight:700,cursor:'pointer'}}>Copy Link</button>
                 <button onClick={()=>{
                   const url=window.location.origin+window.location.pathname+'?id='+(nft?.ID||'');
@@ -6804,7 +6804,7 @@ const BT_AUDIO = {
     try{
       this.ctx = new (window.AudioContext||window.webkitAudioContext)();
       if(this.ctx.state==='suspended') this.ctx.resume();
-    }catch(e){}
+    }catch{}
   },
   beep(freq=440, dur=0.08, vol=0.12, type='square'){
     if(!this.ctx||this.muted) return;
@@ -6816,7 +6816,7 @@ const BT_AUDIO = {
       g.gain.exponentialRampToValueAtTime(0.001,this.ctx.currentTime+dur);
       o.connect(g); g.connect(this.ctx.destination);
       o.start(); o.stop(this.ctx.currentTime+dur);
-    }catch(e){}
+    }catch{}
   },
   /* Sound effects */
   footstep(){
@@ -6879,7 +6879,7 @@ const BT_AUDIO = {
       g3.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime+0.04);
       o3.connect(g3); g3.connect(this.ctx.destination);
       o3.start(); o3.stop(this.ctx.currentTime+0.04);
-    }catch(e){}
+    }catch{}
   },
   deathBoom(){
     this.beep(120, 0.15, 0.2, 'sawtooth');
@@ -6903,7 +6903,7 @@ const BT_AUDIO = {
       g.gain.exponentialRampToValueAtTime(0.001,this.ctx.currentTime+dur);
       o.connect(g); g.connect(this.ctx.destination);
       o.start(); o.stop(this.ctx.currentTime+dur);
-    }catch(e){}
+    }catch{}
   },
 };
 
@@ -6957,7 +6957,7 @@ const btRpc = async (fnName, params) => {
       return await r.json();
     } catch(e){ return null; }
     finally { delete _btRpcQueue[key]; }
-  })());
+  })();
   _btRpcQueue[key] = promise;
   return promise;
 };
@@ -7095,7 +7095,7 @@ const BroTown = ({nfts, onExit}) => {
         }
         localStorage.removeItem('bt_lastBuilding');
       }
-    }catch(e){}
+    }catch{}
   },[showLogin]);
   const [chatInput, setChatInput] = useState('');
   const chatInputRef = useRef(null);
@@ -7484,7 +7484,7 @@ const BroTown = ({nfts, onExit}) => {
             S.rpg.hp = Math.min(S.rpg.hp, S.rpg.maxHp);
             if(sd.achievements) S.badges = sd.achievements;
             setRpgState({...S.rpg});
-            try{localStorage.setItem('bt_rpg',JSON.stringify(S.rpg));}catch(e){}
+            try{localStorage.setItem('bt_rpg',JSON.stringify(S.rpg));}catch{}
             console.log('[BroTown] Server sync: Lv'+S.rpg.level+' '+S.rpg.coins+'G');
           } else if(pid) {
             await btRpc('bt_register_player',{p_id:pid,p_name:S.myName||'Anon'});
@@ -7980,7 +7980,7 @@ const BroTown = ({nfts, onExit}) => {
                   BT_AUDIO.collect();
                 }
                 setRpgState({...R});
-                try{localStorage.setItem('bt_rpg',JSON.stringify(R));}catch(e){}
+                try{localStorage.setItem('bt_rpg',JSON.stringify(R));}catch{}
                 btRpc('bt_monster_kill',{p_id:getBtPlayerId(),p_monster_type:m.type,p_damage:dmg,p_is_crit:isCrit,p_is_special:!!S._specialAttack}).then(sr=>{if(sr&&sr.rpg){R.level=sr.rpg.level;R.xp=sr.rpg.xp;R.coins=sr.rpg.coins;R.unspentPts=sr.rpg.unspent_pts;setRpgState({...R});}});
               }
             }
@@ -8070,7 +8070,7 @@ const BroTown = ({nfts, onExit}) => {
         if(!S._rpgSaveTimer) S._rpgSaveTimer=0;
         S._rpgSaveTimer++;
         if(S._rpgSaveTimer%180===0){
-          try{localStorage.setItem('bt_rpg',JSON.stringify(R));}catch(e){}
+          try{localStorage.setItem('bt_rpg',JSON.stringify(R));}catch{}
           if(getBtPlayerId()) btRpc('bt_sync_rpg',{p_id:getBtPlayerId(),p_coins:R.coins||0,p_xp:R.xp||0,p_hp:R.hp||50,p_level:R.level||1,p_sword_tier:R.swordTier||0});
         }
       }
@@ -8105,7 +8105,7 @@ const BroTown = ({nfts, onExit}) => {
               BT_AUDIO.collect();
             }
             setRpgState({...S.rpg});
-            try{localStorage.setItem('bt_rpg',JSON.stringify(S.rpg));}catch(e){}
+            try{localStorage.setItem('bt_rpg',JSON.stringify(S.rpg));}catch{}
             return false; /* remove loot */
           }
           return true;
@@ -8146,7 +8146,7 @@ const BroTown = ({nfts, onExit}) => {
       }
       /* Attack energy recharge */
       S._atkEnergy = S._atkEnergy ?? 100;
-      if(S._atkEnergy < 100) S._atkEnergy = Math.min(100, S._atkEnergy + 0.5);
+      if(S._atkEnergy < 100) S._atkEnergy = Math.min(100, S._atkEnergy + 0.08);
 
 
       /* Shield stamina drain/regen */
@@ -8673,9 +8673,8 @@ const BroTown = ({nfts, onExit}) => {
           ctx.save(); ctx.translate(sx, sy); ctx.rotate(a.ang);
           ctx.globalAlpha = fadeA;
           if(a.ice){
-            /* Ice arrow — LARGE glowing */
-            ctx.shadowColor='rgba(100,200,255,.8)';ctx.shadowBlur=15;
-            ctx.fillStyle = 'rgba(100,200,255,.9)'; ctx.fillRect(-16, -4, 32, 8);
+            /* Ice arrow — bigger, blue glow */
+            ctx.fillStyle = 'rgba(100,200,255,.8)'; ctx.fillRect(-12, -3, 24, 6);
             ctx.fillStyle = 'rgba(200,240,255,.9)';
             ctx.beginPath(); ctx.moveTo(14,0); ctx.lineTo(8,-5); ctx.lineTo(8,5); ctx.closePath(); ctx.fill();
             ctx.shadowColor='rgba(100,200,255,.6)'; ctx.shadowBlur=8;
@@ -9082,7 +9081,7 @@ const BroTown = ({nfts, onExit}) => {
 
       /* ═══ SHIELD ARC HUD ═══ */
       if(S._shieldUp){
-        const shieldAng = S._shieldAngle !== undefined ? S._shieldAngle : (S._aimAngle || (()=>{
+        const shieldAng = S._aimAngle || (()=>{
           const fd=S._facing||'down';
           return fd==='right'?0:fd==='up'?-Math.PI/2:fd==='left'?Math.PI:Math.PI/2;
         })();
@@ -9104,7 +9103,6 @@ const BroTown = ({nfts, onExit}) => {
         ctx.stroke();
         ctx.restore();
       }
-      } /* end sword render (weapon !== bow) */
 
       /* ═══ BOW AIM LINE — LOS extends across screen ═══ */
       if(S.weapon === 'bow' && S.autoAttack){
@@ -9155,7 +9153,7 @@ const BroTown = ({nfts, onExit}) => {
       }
 
       /* ═══ SWORD — longsword held by character + swing ═══ */
-      if(S.weapon !== 'bow'){
+      {
         let baseA;
         if(S.lockedTarget && S.lockedTarget.ref){
           const lt = S.lockedTarget.ref;
@@ -9183,22 +9181,9 @@ const BroTown = ({nfts, onExit}) => {
 
             ctx.save();
             /* Special attack glow */
-            if(S._specialAttack || S._iceAttack){
-              ctx.fillStyle = S._iceAttack ? 'rgba(100,200,255,0.4)' : 'rgba(245,197,66,0.25)';
-              if(S._iceAttack){
-                ctx.save();
-                ctx.shadowColor='rgba(100,200,255,.8)'; ctx.shadowBlur=20;
-                ctx.fillStyle='rgba(100,200,255,0.2)';
-                ctx.beginPath(); ctx.arc(px, bpy, bladeLen*1.5, 0, Math.PI*2); ctx.fill();
-                ctx.restore();
-              }
-              ctx.beginPath(); ctx.arc(px, bpy, bladeLen*1.4, 0, Math.PI*2); ctx.fill();
-              if(S._iceAttack){
-                ctx.strokeStyle='rgba(100,200,255,0.5)';ctx.lineWidth=3;
-                ctx.beginPath();ctx.arc(px,bpy,bladeLen*1.5,0,Math.PI*2);ctx.stroke();
-                for(let ip=0;ip<4;ip++){const ipA=(Date.now()/200+ip*1.57)%(Math.PI*2);const ipR=bladeLen*0.8+Math.sin(Date.now()/100+ip)*10;
-                  ctx.fillStyle='rgba(200,240,255,0.6)';ctx.beginPath();ctx.arc(px+Math.cos(ipA)*ipR,bpy+Math.sin(ipA)*ipR,3,0,Math.PI*2);ctx.fill();}
-              }
+            if(S._specialAttack){
+              ctx.fillStyle = 'rgba(245,197,66,0.25)';
+              ctx.beginPath(); ctx.arc(px, bpy, bladeLen*1.2, 0, Math.PI*2); ctx.fill();
             }
             /* Motion blur trail */
             const trailA = curA - 0.3;
@@ -9212,8 +9197,7 @@ const BroTown = ({nfts, onExit}) => {
 
             /* Blade — long steel polygon */
             ctx.globalAlpha = 1;
-            ctx.fillStyle = S._iceAttack ? '#88ddff' : '#c8c8d0';
-            if(S._iceAttack){ ctx.shadowColor='rgba(100,200,255,.7)'; ctx.shadowBlur=12; }
+            ctx.fillStyle = '#c8c8d0';
             ctx.shadowColor = '#fff';
             ctx.shadowBlur = 4;
             ctx.beginPath();
@@ -9346,7 +9330,6 @@ const BroTown = ({nfts, onExit}) => {
           ctx.fillStyle = 'rgba(91,82,255,.2)';
           ctx.beginPath(); ctx.arc(px, py+animBob, 20, 0, Math.PI*2); ctx.fill();
         }
-        }
         /* Shield active — pulsing blue hexagonal barrier */
         if(Date.now() < S.shieldEnd){
           const shAge = (S.shieldEnd - Date.now()) / 2000;
@@ -9393,6 +9376,7 @@ const BroTown = ({nfts, onExit}) => {
           ctx.fillStyle = '#f5c542';
           ctx.fillText('STUNNED '+stunLeft.toFixed(1)+'s', px, py-36+animBob);
         }
+      }
       /* ── Chat bubbles above all players ── */
       const drawBubble = (bx, by, text) => {
         ctx.font = '11px sans-serif';
@@ -9740,7 +9724,7 @@ const BroTown = ({nfts, onExit}) => {
         });
         /* Save stats periodically */
         const statsToSave = {...S2.stats, visitedBuildings: S2.stats.visitedBuildings instanceof Set ? [...S2.stats.visitedBuildings] : S2.stats.visitedBuildings, badges:S2.badges};
-        try{ localStorage.setItem('bt_stats', JSON.stringify(statsToSave)); }catch(e){}
+        try{ localStorage.setItem('bt_stats', JSON.stringify(statsToSave)); }catch{}
       if(stateRef.current._statsSyncTimer===undefined) stateRef.current._statsSyncTimer=0;
       stateRef.current._statsSyncTimer++;
       if(stateRef.current._statsSyncTimer%600===0 && getBtPlayerId()) btRpc('bt_update_stats',{p_id:getBtPlayerId(),p_steps:Math.min(100,stateRef.current.stats?.steps||0),p_msgs:0});
@@ -9770,12 +9754,9 @@ const BroTown = ({nfts, onExit}) => {
     const ang = Math.atan2(dy, dx);
     const S = stateRef.current;
     /* Dodge roll — animated movement over 200ms */
-    if((S._atkEnergy||100) < 20) return;
-    if(S._dodgeRoll) return;
-    S._atkEnergy -= 20;
     S._dodgeRoll = {angle:ang, startTime:Date.now()};
     S._dodgeFlash = Date.now();
-    if(!S.respawnTimer || Date.now() > S.respawnTimer) S.respawnTimer = Date.now() + 400;
+    if(!S.respawnTimer || Date.now() > S.respawnTimer) S.respawnTimer = Date.now() + 500;
   },[]);
 
   const doSwing = useCallback(() => {
@@ -10047,7 +10028,7 @@ const BroTown = ({nfts, onExit}) => {
       S2.stats.buildingsVisited = S2.stats.visitedBuildings.size;
     }
     /* Save which building we entered so we spawn outside it on return */
-    try{ localStorage.setItem('bt_lastBuilding', JSON.stringify(nb)); }catch(e){}
+    try{ localStorage.setItem('bt_lastBuilding', JSON.stringify(nb)); }catch{}
     onExit();
     setTimeout(()=>{
       const evt = new CustomEvent('brotown-navigate', {detail:{view:b.action}});
@@ -10149,18 +10130,7 @@ const BroTown = ({nfts, onExit}) => {
     /* Aim lock — hold direction 2.5s after release */
     const aimCopy = S._aimAngle;
     S._aiming = false;
-  },[]);
-
-  /* Shield joystick — hold+drag to aim shield direction */
-  const handleShieldMove = useCallback((clientX, clientY) => {
-    const base = shieldJoyRef.current;
-    if(!base) return;
-    const rect = base.getBoundingClientRect();
-    const dx2 = clientX - (rect.left + rect.width/2);
-    const dy2 = clientY - (rect.top + rect.height/2);
-    if(Math.sqrt(dx2*dx2+dy2*dy2) > 8){
-      stateRef.current._shieldAngle = Math.atan2(dy2, dx2);
-    }
+    /* Keep _lastAimAngle for LOS display */
   },[]);
 
   /* Dual joystick — each finger tracked independently */
@@ -10214,17 +10184,8 @@ const BroTown = ({nfts, onExit}) => {
       window.removeEventListener('touchend',lE);
       window.removeEventListener('touchcancel',lE);
       if(rBase){rBase.removeEventListener('touchstart',rS);window.removeEventListener('touchmove',rM);window.removeEventListener('touchend',rE);window.removeEventListener('touchcancel',rE);}
-      const sBase=shieldJoyRef.current;
-      const sS=(e)=>{e.preventDefault();e.stopPropagation();const t=e.changedTouches[0];shieldTouchId.current=t.identifier;shieldJoyActive.current=true;doShield();handleShieldMove(t.clientX,t.clientY);};
-      const sM=(e)=>{if(shieldTouchId.current===null)return;const t=findT(e.touches,shieldTouchId.current);if(t){e.preventDefault();handleShieldMove(t.clientX,t.clientY);}};
-      const sE=(e)=>{if(shieldTouchId.current===null)return;const t=findT(e.changedTouches,shieldTouchId.current);if(t){shieldTouchId.current=null;shieldJoyActive.current=false;stateRef.current._shieldUp=false;setShieldUp(false);}};
-      if(sBase){sBase.addEventListener('touchstart',sS,{passive:false});window.addEventListener('touchmove',sM,{passive:false});window.addEventListener('touchend',sE,{passive:false});window.addEventListener('touchcancel',sE,{passive:false});}
-      return ()=>{
-        lBase.removeEventListener('touchstart',lS);window.removeEventListener('touchmove',lM);window.removeEventListener('touchend',lE);window.removeEventListener('touchcancel',lE);
-        if(rBase){rBase.removeEventListener('touchstart',rS);window.removeEventListener('touchmove',rM);window.removeEventListener('touchend',rE);window.removeEventListener('touchcancel',rE);}
-        if(sBase){sBase.removeEventListener('touchstart',sS);window.removeEventListener('touchmove',sM);window.removeEventListener('touchend',sE);window.removeEventListener('touchcancel',sE);}
-      };
-  },[showNameModal,showLogin, handleJoystickMove, handleJoystickEnd, handleRJoyMove, handleRJoyEnd, handleShieldMove]);
+    };
+  },[showNameModal,showLogin, handleJoystickMove, handleJoystickEnd, handleRJoyMove, handleRJoyEnd]);
 
   /* Keep keyboard open — focus input when game starts and periodically re-focus */
   useEffect(()=>{
@@ -10248,7 +10209,7 @@ const BroTown = ({nfts, onExit}) => {
     }
     /* Persist choice */
     S.bodyTorso = bodyTorsoColor; S.bodyLegs = bodyLegColor;
-    try{ localStorage.setItem('bt_player', JSON.stringify({name:S.myName, avatar:S.myAvatar, bro:S.myBroData, color:S.myColor, bodyTorso:S.bodyTorso, bodyLegs:S.bodyLegs})); }catch(e){}
+    try{ localStorage.setItem('bt_player', JSON.stringify({name:S.myName, avatar:S.myAvatar, bro:S.myBroData, color:S.myColor, bodyTorso:S.bodyTorso, bodyLegs:S.bodyLegs})); }catch{}
     const pid = getBtPlayerId();
     if(pid) btRpc('bt_register_player',{p_id:pid,p_name:S.myName,p_avatar:S.myAvatar,p_color:S.myColor,p_body_torso:S.bodyTorso,p_body_legs:S.bodyLegs,p_bro_id:S.myBroData?.ID||null,p_bro_data:S.myBroData||null});
     BT_AUDIO.init();
@@ -10295,7 +10256,7 @@ const BroTown = ({nfts, onExit}) => {
               {generatedPassphrase}
             </div>
             <button onClick={()=>{
-              try{navigator.clipboard.writeText(generatedPassphrase);}catch(e){}
+              try{navigator.clipboard.writeText(generatedPassphrase);}catch{}
             }}
               style={{width:'100%',padding:'8px',background:'rgba(255,255,255,.08)',color:'var(--txt3)',
                 border:'1px solid var(--line)',borderRadius:8,fontSize:11,fontWeight:600,cursor:'pointer',marginBottom:12}}>
@@ -10638,7 +10599,7 @@ const BroTown = ({nfts, onExit}) => {
                         R[key]++; R.unspentPts--;
                         if(key==='vit'){ R.maxHp=BASE_HP+R.vit*10; R.hp=R.maxHp; }
                         setRpgState({...R});
-                        try{localStorage.setItem('bt_rpg',JSON.stringify(R));}catch(e){}
+                        try{localStorage.setItem('bt_rpg',JSON.stringify(R));}catch{}
                         BT_AUDIO.beep(600,0.06,0.1,'sine');
                         btRpc('bt_allocate_stat',{p_id:getBtPlayerId(),p_stat:key});
                       }}>+</button>
@@ -11186,7 +11147,7 @@ const BroTown = ({nfts, onExit}) => {
 
       {/* ═══ CONTROLS ═══ */}
       {/* Compact icon bar — bottom strip */}
-      <div style={{height:36,background:'rgba(10,8,20,.95)',borderTop:'1px solid rgba(255,255,255,.08)',
+      <div style={{height:32,background:'rgba(10,8,20,.95)',borderTop:'1px solid rgba(255,255,255,.08)',
         display:'flex',alignItems:'center',gap:3,padding:'0 8px',flexShrink:0,overflow:'hidden'}}>
         <input ref={chatInputRef} className="bt-chat-input"
           placeholder="Chat…" value={chatInput}
@@ -11204,7 +11165,7 @@ const BroTown = ({nfts, onExit}) => {
           {e:'🎒',fn:()=>setShowInventory(s=>!s)},
           {e:'📊',fn:()=>setShowSkills(s=>!s)},
           {e:bodySize==='slim'?'🧍':'🛡️',fn:()=>{const nb=bodySize==='slim'?'armored':'slim';setBodySize(nb);stateRef.current.bodySize=nb;}},
-
+          {e:'🏹',fn:()=>{const nw=weapon==='sword'?'bow':'sword';setWeapon(nw);stateRef.current.weapon=nw;}},
           {e:'💥',fn:()=>doSpecialAttack()},
           {e:'🔑',fn:()=>{const p=getBtPassphrase();if(p)alert('Passphrase:\n\n'+p);}},
           {e:'🚪',fn:async()=>{
@@ -11217,7 +11178,7 @@ const BroTown = ({nfts, onExit}) => {
               if(S.rpg.skills) for(const [k,v] of Object.entries(S.rpg.skills)) if(typeof v==='number') await btRpc('bt_sync_skill',{p_id:pid,p_skill:k,p_value:v});
               if(S.stats) await btRpc('bt_update_stats',{p_id:pid,p_steps:S.stats.steps||0,p_msgs:S.stats.msgsSent||0,p_emotes:S.stats.emotesUsed||0});
             }
-            try{localStorage.removeItem('bt_passphrase');localStorage.removeItem('bt_player');localStorage.removeItem('bt_rpg');localStorage.removeItem('bt_stats');}catch(e){}
+            try{localStorage.removeItem('bt_passphrase');localStorage.removeItem('bt_player');localStorage.removeItem('bt_rpg');localStorage.removeItem('bt_stats');}catch{}
             window.location.reload();
           }},
         ].map((b,i)=>(
@@ -11230,14 +11191,14 @@ const BroTown = ({nfts, onExit}) => {
       </div>
 
       {/* Left joystick — overlaps game/bar border */}
-      <div className="bt-joystick-zone" style={{position:'fixed',bottom:52,left:isLandscape?90:50,zIndex:30,width:isLandscape?120:100,height:isLandscape?120:100}}>
+      <div className="bt-joystick-zone" style={{position:'fixed',bottom:44,left:isLandscape?90:50,zIndex:30,width:isLandscape?120:100,height:isLandscape?120:100}}>
         <div className="bt-joystick-base" ref={joystickRef} style={{width:isLandscape?110:90,height:isLandscape?110:90}}>
           <div className="bt-joystick-knob" ref={knobRef}/>
         </div>
       </div>
 
       {/* Right joystick (aim+attack) — overlaps game/bar border */}
-      <div style={{position:'fixed',bottom:52,right:isLandscape?140:90,zIndex:30,
+      <div style={{position:'fixed',bottom:44,right:isLandscape?140:90,zIndex:30,
         width:isLandscape?120:100,height:isLandscape?120:100}}>
         <div ref={rJoyRef} style={{
           width:isLandscape?110:90,height:isLandscape?110:90,borderRadius:'50%',
@@ -11289,7 +11250,7 @@ const BroTown = ({nfts, onExit}) => {
       </div>
 
       {/* Shield button — large, right of right joystick, hold to activate */}
-      <div style={{position:'fixed',bottom:isLandscape?66:60,right:isLandscape?20:10,zIndex:30,
+      <div style={{position:'fixed',bottom:isLandscape?58:52,right:isLandscape?20:10,zIndex:30,
         width:isLandscape?70:60,height:isLandscape?70:60}}
         onTouchStart={e=>{e.preventDefault();doShield();}}
         onTouchEnd={e=>{e.preventDefault();stateRef.current._shieldUp=false;setShieldUp(false);}}
@@ -12026,7 +11987,7 @@ const NavDrawer = ({view, setView, onClose}) => {
 
   const savePins = useCallback(next => {
     setPins(next);
-    try{ localStorage.setItem(NAV_DRAWER_PINS_KEY, JSON.stringify(next)); }catch(e){}
+    try{ localStorage.setItem(NAV_DRAWER_PINS_KEY, JSON.stringify(next)); }catch{}
   },[]);
 
   const togglePin = useCallback((e, k) => {
@@ -14698,7 +14659,7 @@ const CopterGame = ({nfts}) => {
       setScore(finalScore);
       setBestLocal(prev=>{
         const next=Math.max(prev,finalScore);
-        try{localStorage.setItem('hb_copter_best',String(next));}catch(e){}
+        try{localStorage.setItem('hb_copter_best',String(next));}catch{}
         return next;
       });
       // ── Anti-cheat: sign the score ──
@@ -16744,7 +16705,7 @@ const App=()=>{
   });
   useEffect(()=>{
     document.documentElement.classList.toggle('light', theme==='light');
-    try{localStorage.setItem('hb_theme',theme);}catch(e){}
+    try{localStorage.setItem('hb_theme',theme);}catch{}
   },[theme]);
   const [toast,        setToast]        = useState({msg:'',show:false});
   const [compareBros,  setCompareBros]  = useState([]);
@@ -16792,14 +16753,14 @@ const App=()=>{
   const [floorMethod, setFloorMethodState] = useState(()=>{
     try{ const v=localStorage.getItem('hb_floor_method'); return ['current','sale','custom'].includes(v)?v:'current'; }catch{ return 'current'; }
   });
-  const setFloorMethod = useCallback(v=>{ setFloorMethodState(v); try{localStorage.setItem('hb_floor_method',v);}catch(e){}; },[]);
+  const setFloorMethod = useCallback(v=>{ setFloorMethodState(v); try{localStorage.setItem('hb_floor_method',v);}catch{}; },[]);
 
   // ── Custom floor range (persisted, used when floorMethod==='custom') ──
   const [floorLo, setFloorLoState] = useState(()=>{ try{const v=parseFloat(localStorage.getItem('hb_floor_lo'));return(!isNaN(v)&&v>0)?v:FLOOR_LO;}catch{return FLOOR_LO;} });
   const [floorHi, setFloorHiState] = useState(()=>{ try{const v=parseFloat(localStorage.getItem('hb_floor_hi'));return(!isNaN(v)&&v>0)?v:FLOOR_HI;}catch{return FLOOR_HI;} });
-  const setFloorLo = useCallback(v=>{ setFloorLoState(v); try{localStorage.setItem('hb_floor_lo',v);}catch(e){} },[]);
-  const setFloorHi = useCallback(v=>{ setFloorHiState(v); try{localStorage.setItem('hb_floor_hi',v);}catch(e){} },[]);
-  const resetFloor = useCallback(()=>{ setFloorLoState(FLOOR_LO); setFloorHiState(FLOOR_HI); try{localStorage.removeItem('hb_floor_lo');localStorage.removeItem('hb_floor_hi');}catch(e){} },[]);
+  const setFloorLo = useCallback(v=>{ setFloorLoState(v); try{localStorage.setItem('hb_floor_lo',v);}catch{} },[]);
+  const setFloorHi = useCallback(v=>{ setFloorHiState(v); try{localStorage.setItem('hb_floor_hi',v);}catch{} },[]);
+  const resetFloor = useCallback(()=>{ setFloorLoState(FLOOR_LO); setFloorHiState(FLOOR_HI); try{localStorage.removeItem('hb_floor_lo');localStorage.removeItem('hb_floor_hi');}catch{} },[]);
 
   // ── Score overrides (DI Model editor) ──
   const [scoreOverrides, setScoreOverrides] = useState(()=>{
@@ -16809,13 +16770,13 @@ const App=()=>{
     setScoreOverrides(prev=>{
       const next={...prev};
       if(val===null) delete next[key]; else next[key]=val;
-      try{localStorage.setItem('hb_score_overrides',JSON.stringify(next));}catch(e){}
+      try{localStorage.setItem('hb_score_overrides',JSON.stringify(next));}catch{}
       return next;
     });
   },[]);
   const resetAllOverrides = useCallback(()=>{
     setScoreOverrides({});
-    try{localStorage.removeItem('hb_score_overrides');}catch(e){}
+    try{localStorage.removeItem('hb_score_overrides');}catch{}
   },[]);
   const overrideCount = Object.keys(scoreOverrides).length;
   // All views consume effectiveTraitMap — overrides merged on top of loaded data
@@ -16893,14 +16854,14 @@ const App=()=>{
   const addToRecent  = useCallback((nft)=>{
     setRecentlyViewed(prev=>{
       const next=[nft,...prev.filter(n=>n.ID!==nft.ID)].slice(0,8);
-      try{localStorage.setItem('hb_recent',JSON.stringify(next));}catch(e){}
+      try{localStorage.setItem('hb_recent',JSON.stringify(next));}catch{}
       return next;
     });
   },[]);
   const toggleWatch  = useCallback((id)=>{
     setWatchlist(prev=>{
       const next=new Set(prev); next.has(id)?next.delete(id):next.add(id);
-      try{localStorage.setItem('hb_watch',JSON.stringify([...next]));}catch(e){}
+      try{localStorage.setItem('hb_watch',JSON.stringify([...next]));}catch{}
       return next;
     });
   },[]);
