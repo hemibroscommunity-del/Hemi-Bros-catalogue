@@ -1,0 +1,51 @@
+name: Mirror IPFS images to repo
+
+# Run manually from the Actions tab (Run workflow). One-time, but safe to re-run:
+# it skips images already mirrored, so re-running continues where it left off.
+on:
+  workflow_dispatch:
+    inputs:
+      max_width:
+        description: "Max image width in px (downscale only)"
+        default: "640"
+      quality:
+        description: "WebP quality 1-100"
+        default: "80"
+
+permissions:
+  contents: write   # lets the job commit the images + updated CSV back to the repo
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install Pillow requests
+
+      - name: Mirror images + rewrite CSV
+        env:
+          REPO: ${{ github.repository }}
+          MAX_WIDTH: ${{ github.event.inputs.max_width }}
+          QUALITY: ${{ github.event.inputs.quality }}
+        run: python scripts/mirror_images.py
+
+      - name: Commit & push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "Mirror IPFS images to repo and serve via jsDelivr CDN"
+            git push
+          fi
